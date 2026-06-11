@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="DeepFrontier/DeepFrontier.vcxproj" />
+  <Project Path="DeepFrontier/DeepFrontier.vcxproj" Id="24a5c681-fd3d-4bc0-a493-7dbda0bc311b" />
 </Solution>
