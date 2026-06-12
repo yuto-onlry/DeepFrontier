@@ -45,7 +45,15 @@ void CharacterBase::Release()
 
 void CharacterBase::Damage(int damage)
 {
-	hp -= damage;
+	int finalDamage = damage - defense;
+
+	if (finalDamage < 1)
+	{
+		finalDamage = 1;
+	}
+
+	hp -= finalDamage;
+
 	if (hp <= 0)
 	{
 		hp = 0;

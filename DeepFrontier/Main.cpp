@@ -1,16 +1,44 @@
 #include "DxLib.h"
+#include "Player.h"
+#include "EnemyBase.h"
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	if (DxLib_Init() == -1)		// ＤＸライブラリ初期化処理
-	{
-		return -1;			// エラーが起きたら直ちに終了
-	}
+    if (DxLib_Init() == -1)
+    {
+        return -1;
+    }
 
-	DrawPixel(320, 240, GetColor(255, 255, 255));	// 点を打つ
+    SetDrawScreen(DX_SCREEN_BACK);
 
-	WaitKey();				// キー入力待ち
+    SetUseZBuffer3D(TRUE);
+    SetWriteZBuffer3D(TRUE);
 
-	DxLib_End();				// ＤＸライブラリ使用の終了処理
+    SetCameraPositionAndTarget_UpVecY(
+        VGet(0.0f, 500.0f, -800.0f),
+        VGet(0.0f, 0.0f, 0.0f)
+    );
 
-	return 0;				// ソフトの終了 
+    Player player;
+    EnemyBase enemy;
+
+    player.Init();
+    enemy.Init();
+
+    while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
+    {
+        ClearDrawScreen();
+
+        player.Update();
+        enemy.Update(player.GetPosition());
+
+        player.Draw();
+        enemy.Draw();
+
+        ScreenFlip();
+    }
+
+    DxLib_End();
+
+    return 0;
 }
