@@ -20,9 +20,24 @@ void Player::Init()
     velocity = VGet(0.0f, 0.0f, 0.0f);
 
 	// モデルの読み込み
-    modelHandle = -1;
-}
+	modelHandle = MV1LoadModel("../3dModel/UAL2_Standard.mv1");
 
+    if (modelHandle == -1)
+    {
+        printfDx("Playerモデルの読み込みに失敗しました\n");
+    }
+    else
+    {
+        // モデルの大きさ調整
+        MV1SetScale(modelHandle, VGet(200.0f, 200.0f, 200.0f));
+		// モデルの90度回転
+        MV1SetRotationXYZ(modelHandle, VGet(DX_PI_F / 2.0f, 0.0f, 0.0f));
+        // モデルの初期位置
+        MV1SetPosition(modelHandle, position);
+    }
+
+    isDead = false;
+}
 void Player::Update()
 {
     DINPUT_JOYSTATE input;
@@ -42,7 +57,7 @@ void Player::Update()
 
         //左右
         velocity.x = x * speed;
-        //前後
+        //前後      
         velocity.z = -y * speed;
     }
 	position = VAdd(position, velocity);

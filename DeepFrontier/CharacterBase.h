@@ -6,7 +6,6 @@ class CharacterBase
 protected:
 	VECTOR position;	//キャラクター位置
 	VECTOR velocity;	//キャラクター速度
-
 	int hp;				//キャラクターの体力
 	int attack;			//キャラクターの攻撃力
 	int defense;		//キャラクターの防御力

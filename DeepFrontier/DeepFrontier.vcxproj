@@ -150,13 +150,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CharacterBase.cpp" />
+    <ClCompile Include="CharacterManager.cpp" />
     <ClCompile Include="EnemyBase.cpp" />
+    <ClCompile Include="LittleEnemy.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Playre.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CharacterBase.h" />
+    <ClInclude Include="CharacterManager.h" />
     <ClInclude Include="EnemyBase.h" />
+    <ClInclude Include="LittleEnemy.h" />
     <ClInclude Include="Player.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
