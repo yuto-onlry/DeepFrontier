@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AnimationManager.cpp" />
     <ClCompile Include="CharacterBase.cpp" />
     <ClCompile Include="CharacterManager.cpp" />
     <ClCompile Include="EnemyBase.cpp" />
@@ -157,6 +158,7 @@
     <ClCompile Include="Playre.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AnimationManager.h" />
     <ClInclude Include="CharacterBase.h" />
     <ClInclude Include="CharacterManager.h" />
     <ClInclude Include="EnemyBase.h" />
