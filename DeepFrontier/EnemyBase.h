@@ -1,10 +1,12 @@
 #pragma once
 #include "CharacterBase.h"
+#include "AnimationManager.h"
 
 class EnemyBase : public CharacterBase
 {
-protected
-:
+protected:
+	//アニメーション管理
+	AnimationManager animationManager;
 	float moveSpeed;	//移動速度
 	float attackRange;	//攻撃範囲
 
@@ -16,10 +18,10 @@ public:
 
 	//playerの座標を受け取る
 	virtual void Update(VECTOR playerPos);
-
-	void Draw() override;
+	virtual void Release() override;
+	virtual void Draw() override;
 
 protected:
-	void MovePlayer(VECTOR playerPos);
-	bool AttackRange(VECTOR playerPos);
+	void GetMovePlayerPos(VECTOR playerPos);
+	bool GetAttackRange(VECTOR playerPos);
 };

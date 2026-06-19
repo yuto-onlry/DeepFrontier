@@ -2,6 +2,7 @@
 #include "DxLib.h"
 #include "Player.h"
 #include "EnemyBase.h"
+#include "InputManager.h"
 #include <vector>
 #include <memory>
 
@@ -17,7 +18,7 @@ public:
     ~CharacterManager();
 
     void Init();
-    void Update();
+    void Update(const InputManager& inputManager);
     void Draw();
     void Release();
 

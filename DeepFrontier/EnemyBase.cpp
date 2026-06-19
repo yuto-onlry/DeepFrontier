@@ -27,28 +27,38 @@ void EnemyBase::Init()
 void EnemyBase::Update(VECTOR playerPos)
 {
     if (isDead == true)
+        return;
+    if (GetAttackRange(playerPos) == true)
     {
+        velocity = VGet(0.0f, 0.0f, 0.0f);
+        animationManager.ChangeAnim(AnimationType::Idle);
+        animationManager.Update();
         return;
     }
-
     // 攻撃範囲内なら止まる
-    if (AttackRange(playerPos) == true)
+    if (GetAttackRange(playerPos) == true)
     {
         velocity = VGet(0.0f, 0.0f, 0.0f);
         return;
     }
 
     // 攻撃範囲外ならプレイヤーへ近づく
-    MovePlayer(playerPos);
-}
+    GetMovePlayerPos(playerPos);
 
-void EnemyBase::MovePlayer(VECTOR playerPosition)
+    animationManager.ChangeAnim(AnimationType::Run);
+    animationManager.Update();
+}
+void EnemyBase::Release()
+{
+    CharacterBase::Release();
+}
+void EnemyBase::GetMovePlayerPos(VECTOR playerPos)
 {
     VECTOR direction;
 
-    direction.x = playerPosition.x - position.x;
+    direction.x = playerPos.x - position.x;
     direction.y = 0.0f;
-    direction.z = playerPosition.z - position.z;
+    direction.z = playerPos.z - position.z;
 
     float length = std::sqrt(
         direction.x * direction.x +
@@ -68,9 +78,21 @@ void EnemyBase::MovePlayer(VECTOR playerPosition)
     velocity.z = direction.z * moveSpeed;
 
     position = VAdd(position, velocity);
-}
 
-bool EnemyBase::AttackRange(VECTOR playerPos)
+    if (modelHandle != -1)
+    {
+        float angleY = atan2f(velocity.x, velocity.z);
+
+        // モデルの正面補正。向きが逆なら DX_PI_F を足す
+        float modelOffset = DX_PI_F;
+
+        MV1SetRotationXYZ(
+            modelHandle,
+            VGet(0.0f, angleY + modelOffset, 0.0f)
+        );
+    }
+}
+bool EnemyBase::GetAttackRange(VECTOR playerPos)
 {
     float dx = playerPos.x - position.x;
     float dz = playerPos.z - position.z;
@@ -91,21 +113,8 @@ void EnemyBase::Draw()
     {
         return;
     }
-
     if (modelHandle != -1)
     {
         CharacterBase::Draw();
-    }
-    else
-    {
-        // モデルがない間は赤い球体で仮表示
-        DrawSphere3D(
-            position,
-            30.0f,
-            16,
-            GetColor(255, 0, 0),
-            GetColor(255, 0, 0),
-            TRUE
-        );
     }
 }

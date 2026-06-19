@@ -22,20 +22,14 @@ void CharacterManager::Init()
     AddLittleEnemy(VGet(300.0f, 0.0f, -300.0f));
     AddLittleEnemy(VGet(-300.0f, 0.0f, -300.0f));
 }
-void CharacterManager::Update()
+void CharacterManager::Update(const InputManager& inputManager)
 {
-    if (player != nullptr)
-    {
-		player -> Update();
-    }
-
     VECTOR playerPos = GetPlayerPosition();
+    if (player != nullptr)
+        player->Update(inputManager);
 
     for (auto& enemy : enemies)
-    {
         enemy->Update(playerPos);
-    }
-
     // 死亡した敵を削除
     for (auto it = enemies.begin(); it != enemies.end();)
     {

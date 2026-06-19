@@ -1,6 +1,7 @@
 #pragma once
 #include "CharacterBase.h"
 #include "animationManager.h"
+#include "InputManager.h"
 #include  <dinput.h>
 
 class Player : public CharacterBase
@@ -16,7 +17,7 @@ public:
 	virtual ~Player();
 
 	void Init() override;
-	void Update() override;
+	void Update(const InputManager& inputManager);
 	void Draw() override;
 	void Release() override;
 

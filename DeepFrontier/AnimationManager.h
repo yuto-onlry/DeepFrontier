@@ -8,7 +8,13 @@ enum class AnimationType
     Run,        // 走行
     Attack,     // 攻撃
 	StrongAttack, // 強攻撃
+	AttackLockOn,  // 攻撃ロックオン
+	JumpStart,       // ジャンプ
+	JumpLoop,        // ジャンプ中
+	JumpEnd,         // 着地
+	Avoid,      // 回避       
     Damage,     // ダメージ
+	GetUp,      // 起き上がり
     Dead,       // 死亡   
     Max
 };
@@ -29,12 +35,15 @@ private:
 public:
     AnimationManager();
     ~AnimationManager();
-    void Init(int model, int animSrc);
-    void Release();
 
-    void SetAnimNo(AnimationType type, int animNo);
-    void ChangeAnim(AnimationType type);
+    void Init(int model);
     void Update();
+    void Release();
+    void ChangeAnim(AnimationType type);
+    bool LoadAnimModel(const char* filePath);
 
+
+	// アニメーション番号を設定するセッター
+    void SetAnimIndex(AnimationType type, int animIndex);
     void SetSpeed(float speed);
 };
