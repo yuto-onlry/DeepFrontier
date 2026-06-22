@@ -7,6 +7,18 @@
 class Player : public CharacterBase
 {
 private:
+	enum class playerState
+	{
+		Idle,
+		Walk,
+		Run,
+		Jump,
+		Attack,
+		Avoid,
+		Damage,
+		GetUp,
+		Dead
+	};
 	//ジョイスティックの状態
 	DINPUT_JOYSTATE input;	
 	//アニメーション管理

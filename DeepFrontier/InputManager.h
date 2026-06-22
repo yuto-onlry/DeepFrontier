@@ -6,6 +6,16 @@
 class InputManager
 {
 private:
+    enum class PadButton
+    {
+        A = 3,
+        B = 4,
+        X = 1,
+        Y = 2,
+        LB = 5,
+        RB = 6
+    };
+
 	// ジョイスティックの状態
     DINPUT_JOYSTATE currentInput;
     DINPUT_JOYSTATE prevInput;
@@ -22,6 +32,6 @@ public:
 
     VECTOR GetLeftStick() const;
 
-    bool IsButton(int buttonNo) const;
-    bool IsButtonDown(int buttonNo) const;
+    bool IsButton(PadButton button) const;
+    bool IsButtonDown(PadButton button) const;
 };

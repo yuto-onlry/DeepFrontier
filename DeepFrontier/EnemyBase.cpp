@@ -83,7 +83,7 @@ void EnemyBase::GetMovePlayerPos(VECTOR playerPos)
     {
         float angleY = atan2f(velocity.x, velocity.z);
 
-        // モデルの正面補正。向きが逆なら DX_PI_F を足す
+		//モデルの向きをプレイヤーの方向に合わせる
         float modelOffset = DX_PI_F;
 
         MV1SetRotationXYZ(

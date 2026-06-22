@@ -5,9 +5,9 @@ void AnimationPreset::SetAnimationPlayer(AnimationManager& animManager, int mode
     animManager.Init(modelHandle);
 
     if (animManager.LoadAnimModel("../Animation/Player/PlayerAnimation.mv1") == true ||
-		animManager.LoadAnimModel(".../Animation/Player/PlayerAnimation2.mv1") == true)
+		animManager.LoadAnimModel("../Animation/Player/PlayerAnimation2.mv1") == true)
     {
-		// アニメーション番号を指定+割り振り
+		// アニメーション指定+割り振り
         animManager.SetAnimIndex(AnimationType::Idle, 9);
 		animManager.SetAnimIndex(AnimationType::Walk, 42);
         animManager.SetAnimIndex(AnimationType::Run, 36);

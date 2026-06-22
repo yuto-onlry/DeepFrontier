@@ -46,18 +46,26 @@ VECTOR InputManager::GetLeftStick() const
     return VGet(x, 0.0f, -y);
 }
 
-bool InputManager::IsButton(int buttonNo) const
+bool InputManager::IsButton(PadButton button) const
 {
+    int buttonNo = static_cast<int>(button);
+
     if (buttonNo < 0 || buttonNo >= 32)
+    {
         return false;
+    }
 
     return currentInput.Buttons[buttonNo] != 0;
 }
 
-bool InputManager::IsButtonDown(int buttonNo) const
+bool InputManager::IsButtonDown(PadButton button) const
 {
+    int buttonNo = static_cast<int>(button);
+
     if (buttonNo < 0 || buttonNo >= 32)
+    {
         return false;
+    }
 
     return currentInput.Buttons[buttonNo] != 0 &&
         prevInput.Buttons[buttonNo] == 0;

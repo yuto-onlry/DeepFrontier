@@ -16,11 +16,8 @@ void CharacterManager::Init()
     player = std::make_unique<Player>();
     player->Init();
 
-    //敵の複製
+	//敵の初期化＋配置
     AddLittleEnemy(VGet(300.0f, 0.0f, 300.0f));
-    AddLittleEnemy(VGet(-300.0f, 0.0f, 300.0f));
-    AddLittleEnemy(VGet(300.0f, 0.0f, -300.0f));
-    AddLittleEnemy(VGet(-300.0f, 0.0f, -300.0f));
 }
 void CharacterManager::Update(const InputManager& inputManager)
 {
