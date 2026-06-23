@@ -1,5 +1,6 @@
 #pragma once
 #include "DxLib.h"
+#include "SphereCollider.h"
 
 class CharacterBase
 {
@@ -13,9 +14,14 @@ protected:
 
 	bool isDead;		//キャラクターの死亡状態
 
+protected:
+	SphereCollider bodyCollider;
+
 public:
 	CharacterBase();		
 	virtual ~CharacterBase();
+public:
+	SphereCollider* GetBodyCollider();
 
 	virtual void Init();
 	virtual void Update();

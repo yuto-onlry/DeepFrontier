@@ -153,23 +153,29 @@
     <ClCompile Include="AnimationPreset.cpp" />
     <ClCompile Include="CharacterBase.cpp" />
     <ClCompile Include="CharacterManager.cpp" />
+    <ClCompile Include="ColliderBase.cpp" />
+    <ClCompile Include="CollisionManager.cpp" />
     <ClCompile Include="EnemyBase.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LittleEnemy.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ModelPreset.cpp" />
     <ClCompile Include="Playre.cpp" />
+    <ClCompile Include="SphereCollider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationManager.h" />
     <ClInclude Include="AnimationPreset.h" />
     <ClInclude Include="CharacterBase.h" />
     <ClInclude Include="CharacterManager.h" />
+    <ClInclude Include="ColliderBase.h" />
+    <ClInclude Include="CollisionManager.h" />
     <ClInclude Include="EnemyBase.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="LittleEnemy.h" />
     <ClInclude Include="ModelPreset.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="SphereCollider.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

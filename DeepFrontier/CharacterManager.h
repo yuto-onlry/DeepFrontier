@@ -3,6 +3,7 @@
 #include "Player.h"
 #include "EnemyBase.h"
 #include "InputManager.h"
+#include "CollisionManager.h"
 #include <vector>
 #include <memory>
 
@@ -12,6 +13,7 @@ private:
 	// プレイヤーと敵の管理クラス
     std::unique_ptr<Player> player;
     std::vector<std::unique_ptr<EnemyBase>> enemies;
+    CollisionManager collisionManager;
 
 public:
     CharacterManager();

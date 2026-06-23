@@ -5,10 +5,11 @@
 #include <cmath>
 
 Player::Player()
-    : state(PlayerState::Idle),
-      verticalVelocity(0.0f),
-      isJumping(false),
-      actionTimer(0)
+    :state(PlayerState::Idle),
+	 animModelHandle(-1),
+     verticalVelocity(0.0f),
+     isJumping(false),
+     actionTimer(0)
 {
 }    
 Player::~Player()
@@ -25,13 +26,18 @@ void Player::Init()
     velocity = VGet(0.0f, 0.0f, 0.0f);
 	//モデルの読み込み
 	modelHandle = ModelPreset::LoadPlayerModel();
-
     if (modelHandle == -1)
         return;
 	//モデルの位置をセット
     MV1SetPosition(modelHandle, position);
 	//アニメーションのセット
     AnimationPreset::SetAnimationPlayer(animationManager, modelHandle);
+
+    bodyCollider.SetTag(ColliderTag::Player);
+    bodyCollider.SetOwner(this);
+    bodyCollider.SetRadius(80.0f);
+    bodyCollider.SetPosition(VGet(position.x, position.y + 100.0f, position.z));
+    bodyCollider.SetActive(true);
 
     isDead = false;
 }
@@ -171,6 +177,7 @@ void Player::Update(const InputManager& inputManager)
     }
 
     MV1SetPosition(modelHandle, position);
+    bodyCollider.SetPosition(VGet(position.x, position.y + 100.0f, position.z));
 }void Player::Draw()
 {
     if (modelHandle != -1)

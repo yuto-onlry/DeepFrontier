@@ -16,40 +16,43 @@ void CharacterManager::Init()
     player = std::make_unique<Player>();
     player->Init();
 
-	//敵の初期化＋配置
+    // 敵の初期化＋配置
     AddLittleEnemy(VGet(300.0f, 0.0f, 300.0f));
 }
 void CharacterManager::Update(const InputManager& inputManager)
 {
-    VECTOR playerPos = GetPlayerPosition();
     if (player != nullptr)
         player->Update(inputManager);
+    VECTOR playerPos = GetPlayerPosition();
 
     for (auto& enemy : enemies)
         enemy->Update(playerPos);
+
     // 死亡した敵を削除
     for (auto it = enemies.begin(); it != enemies.end();)
-    {
         if ((*it)->IsDead() == true)
-        {
             it = enemies.erase(it);
-        }else
-        {
+        else
             ++it;
-        }
-    }
-}
 
+    collisionManager.Clear();
+
+    if (player != nullptr)
+        collisionManager.AddCollider(player->GetBodyCollider());
+
+    for (auto& enemy : enemies)
+        collisionManager.AddCollider(enemy->GetBodyCollider());
+
+    collisionManager.CheckAllCollision();
+}
 void CharacterManager::Draw()
 {
     if (player != nullptr)
-    {
         player->Draw();
-    }
     for (auto& enemy : enemies)
-    {
         enemy->Draw();
-    }
+	// デバッグ用のコライダー描画    
+    collisionManager.DrawDebug();
 }
 
 void CharacterManager::Release()
