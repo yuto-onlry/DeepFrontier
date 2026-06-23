@@ -6,8 +6,8 @@
 
 class Player : public CharacterBase
 {
-private:
-	enum class playerState
+public:
+	enum class PlayerState
 	{
 		Idle,
 		Walk,
@@ -19,11 +19,17 @@ private:
 		GetUp,
 		Dead
 	};
+public:
 	//ジョイスティックの状態
 	DINPUT_JOYSTATE input;	
 	//アニメーション管理
 	AnimationManager animationManager; 
+	PlayerState state;
 	int animModelHandle;
+	int actionTimer;
+	float verticalVelocity;
+	bool isJumping;
+
 public:
 	Player();
 	virtual ~Player();

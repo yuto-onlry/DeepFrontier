@@ -5,15 +5,19 @@
 
 class InputManager
 {
-private:
+public:
     enum class PadButton
     {
-        A = 3,
-        B = 4,
-        X = 1,
-        Y = 2,
-        LB = 5,
-        RB = 6
+        A ,
+        B ,
+        X ,
+        Y ,
+        LB ,
+        RB,
+		Back,
+		Start,
+        LT,
+		RT
     };
 
 	// ジョイスティックの状態

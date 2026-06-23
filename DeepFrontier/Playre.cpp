@@ -5,9 +5,12 @@
 #include <cmath>
 
 Player::Player()
+    : state(PlayerState::Idle),
+      verticalVelocity(0.0f),
+      isJumping(false),
+      actionTimer(0)
 {
-}
-
+}    
 Player::~Player()
 {
 }
@@ -31,38 +34,144 @@ void Player::Init()
     AnimationPreset::SetAnimationPlayer(animationManager, modelHandle);
 
     isDead = false;
-}void Player::Update(const InputManager& inputManager)
+}
+void Player::Update(const InputManager& inputManager)
 {
-	// 移動速度
-    float speed = 5.0f;
-    bool isMove = false;
+    velocity = VGet(0.0f, 0.0f, 0.0f);
+
+    float walkSpeed = 5.0f;
+    float dashSpeed = 9.0f;
+
     VECTOR moveInput = inputManager.GetLeftStick();
 
-    velocity = VGet(0.0f, 0.0f, 0.0f);
+    bool isMove = false;
+
+    if (moveInput.x != 0.0f || moveInput.z != 0.0f)
+    {
+        isMove = true;
+    }
+
+    // 攻撃・回避中は一定時間、通常移動アニメーションで上書きしない
+    if (actionTimer > 0)
+    {
+        actionTimer--;
+
+        animationManager.Update();
+        MV1SetPosition(modelHandle, position);
+        return;
+    }
+
+    // Xボタン：攻撃
+    if (inputManager.IsButtonDown(InputManager::PadButton::X))
+    {
+        state = PlayerState::Attack;
+        animationManager.ChangeAnim(AnimationType::Attack);
+
+        actionTimer = 30;
+        animationManager.Update();
+        MV1SetPosition(modelHandle, position);
+        return;
+    }
+
+    // Bボタン：回避
+    if (inputManager.IsButtonDown(InputManager::PadButton::B))
+    {
+        state = PlayerState::Avoid;
+        animationManager.ChangeAnim(AnimationType::Avoid);
+
+        // 入力方向へ少し回避移動
+        if (isMove == true)
+        {
+            position.x += moveInput.x * 80.0f;
+            position.z += moveInput.z * 80.0f;
+        }
+
+        actionTimer = 20;
+        animationManager.Update();
+        MV1SetPosition(modelHandle, position);
+        return;
+    }
+
+    // Aボタン：ジャンプ
+    if (inputManager.IsButtonDown(InputManager::PadButton::A) && isJumping == false)
+    {
+        isJumping = true;
+        verticalVelocity = 15.0f;
+
+        state = PlayerState::Jump;
+        animationManager.ChangeAnim(AnimationType::JumpStart);
+    }
+
+    // 移動速度
+    float speed = walkSpeed;
+
+    if (inputManager.IsButton(InputManager::PadButton::LB) && isMove == true)
+    {
+        speed = dashSpeed;
+    }
+
     velocity.x = moveInput.x * speed;
     velocity.z = moveInput.z * speed;
 
     position = VAdd(position, velocity);
-    if (velocity.x != 0.0f || velocity.z != 0.0f)
-        isMove = true;
-    
-	//各動きに応じてアニメーションを切り替える
-    if (isMove == true)
-        animationManager.ChangeAnim(AnimationType::Walk);
+
+    // ジャンプ処理
+    if (isJumping == true)
+    {
+        position.y += verticalVelocity;
+        verticalVelocity -= 0.8f;
+
+        if (position.y <= 0.0f)
+        {
+            position.y = 0.0f;
+            verticalVelocity = 0.0f;
+            isJumping = false;
+
+            animationManager.ChangeAnim(AnimationType::JumpEnd);
+        }
+        else
+        {
+            animationManager.ChangeAnim(AnimationType::JumpLoop);
+        }
+    }
     else
-        animationManager.ChangeAnim(AnimationType::Idle);
+    {
+        if (isMove == true)
+        {
+            if (inputManager.IsButton(InputManager::PadButton::LB))
+            {
+                state = PlayerState::Run;
+                animationManager.ChangeAnim(AnimationType::Run);
+            }
+            else
+            {
+                state = PlayerState::Walk;
+                animationManager.ChangeAnim(AnimationType::Walk);
+            }
+        }
+        else
+        {
+            state = PlayerState::Idle;
+            animationManager.ChangeAnim(AnimationType::Idle);
+        }
+    }
 
     animationManager.Update();
 
+    // 移動しているときだけ向きを変える
     if (isMove == true)
     {
         float angleY = atan2f(velocity.x, velocity.z);
         float modelOffset = DX_PI_F;
 
-        MV1SetRotationXYZ(modelHandle,VGet(DX_PI_F / 2.0f, angleY + modelOffset, 0.0f));
+        MV1SetRotationXYZ(
+            modelHandle,
+            VGet(DX_PI_F / 2.0f, angleY + modelOffset, 0.0f)
+        );
     }
-}
-void Player::Draw()
+
+    MV1SetPosition(modelHandle, position);
+}void Player::Draw()
 {
     if (modelHandle != -1)
         CharacterBase::Draw();
