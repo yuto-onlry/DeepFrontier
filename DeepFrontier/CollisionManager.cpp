@@ -1,5 +1,8 @@
 #include "CollisionManager.h"
 #include "SphereCollider.h"
+#include "CapsuleCollider.h"
+#include <algorithm>
+#include <cmath>
 
 CollisionManager::CollisionManager()
 {
@@ -41,12 +44,11 @@ void CollisionManager::CheckAllCollision()
         {
             ColliderBase* a = colliders[i];
             ColliderBase* b = colliders[j];
-
             if (CheckCollision(a, b) == true)
             {
                 CollisionHit hit;
-                hit.colliderA = a;
-                hit.colliderB = b;
+                hit.colliderPlayer = a;
+                hit.colliderEnemy = b;
 
                 collisionHit.push_back(hit);
             }
@@ -62,12 +64,8 @@ const std::vector<CollisionHit>& CollisionManager::GetCollisionHit() const
 void CollisionManager::DrawDebug() const
 {
     for (ColliderBase* collider : colliders)
-    {
         if (collider != nullptr)
-        {
             collider->DrawDebug();
-        }
-    }
 }
 
 bool CollisionManager::CheckCollision(ColliderBase* a, ColliderBase* b)
@@ -93,9 +91,14 @@ bool CollisionManager::CheckCollision(ColliderBase* a, ColliderBase* b)
         return CheckSphereSphere(a, b);
     }
 
+    if (a->GetColliderType() == ColliderType::Capsule &&
+        b->GetColliderType() == ColliderType::Capsule)
+    {
+        return CheckCapsuleCapsule(a, b);
+    }
+
     return false;
 }
-
 bool CollisionManager::CheckSphereSphere(ColliderBase* a, ColliderBase* b)
 {
     SphereCollider* sphereA = static_cast<SphereCollider*>(a);
@@ -111,6 +114,51 @@ bool CollisionManager::CheckSphereSphere(ColliderBase* a, ColliderBase* b)
     float distanceSq = dx * dx + dy * dy + dz * dz;
 
     float radius = sphereA->GetRadius() + sphereB->GetRadius();
+    float radiusSq = radius * radius;
+
+    return distanceSq <= radiusSq;
+}
+bool CollisionManager::CheckCapsuleCapsule(ColliderBase* a, ColliderBase* b)
+{
+    CapsuleCollider* capA = static_cast<CapsuleCollider*>(a);
+    CapsuleCollider* capB = static_cast<CapsuleCollider*>(b);
+
+    VECTOR aTop = capA->GetTopCenter();
+    VECTOR aBottom = capA->GetCenter();
+
+    VECTOR bTop = capB->GetTopCenter();
+    VECTOR bBottom = capB->GetCenter();
+
+    // XZ平面の距離
+    float dx = capA->GetPosition().x - capB->GetPosition().x;
+    float dz = capA->GetPosition().z - capB->GetPosition().z;
+
+    float xzDistance = dx * dx + dz * dz;
+
+    // Y方向の距離
+    float aMinY = aBottom.y;
+    float aMaxY = aTop.y;
+    float bMinY = bBottom.y;
+    float bMaxY = bTop.y;
+
+    float yDistance = 0.0f;
+
+    if (aMaxY < bMinY)
+    {
+        yDistance = bMinY - aMaxY;
+    }
+    else if (bMaxY < aMinY)
+    {
+        yDistance = aMinY - bMaxY;
+    }
+    else
+    {
+        yDistance = 0.0f;
+    }
+
+    float distanceSq = xzDistance + yDistance * yDistance;
+
+    float radius = capA->GetRadius() + capB->GetRadius();
     float radiusSq = radius * radius;
 
     return distanceSq <= radiusSq;

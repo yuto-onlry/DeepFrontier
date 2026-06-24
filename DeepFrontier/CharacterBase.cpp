@@ -9,17 +9,17 @@ CharacterBase::CharacterBase()
 	modelHandle(-1), 
 	isDead(false)
 {
-	bodyCollider.SetOwner(this);
-	bodyCollider.SetActive(true);
+	capsuleCollider.SetOwner(this);
+	capsuleCollider.SetActive(true);
 }
 
 CharacterBase::~CharacterBase()
 {
 	Release();
 }
-SphereCollider* CharacterBase::GetBodyCollider()
+CapsuleCollider* CharacterBase::GetCapsuleCollider()
 {
-	return &bodyCollider;
+	return &capsuleCollider;
 }
 void CharacterBase::Init()
 {
@@ -79,5 +79,5 @@ VECTOR CharacterBase::GetPosition() const
 void CharacterBase::SetPosition(VECTOR pos)
 {
 	position = pos;
-	bodyCollider.SetPosition(position);
+	capsuleCollider.SetPosition(position);
 }

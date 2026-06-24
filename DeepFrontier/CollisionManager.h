@@ -4,8 +4,8 @@
 
 struct CollisionHit
 {
-	ColliderBase* colliderA;
-	ColliderBase* colliderB;
+	ColliderBase* colliderPlayer;
+	ColliderBase* colliderEnemy;
 };
 
 class CollisionManager
@@ -18,14 +18,16 @@ public:
 	CollisionManager();
 	~CollisionManager();
 
+public:
 	void Clear();
 	const std::vector<CollisionHit>& GetCollisionHit() const;
 	void AddCollider(ColliderBase* collider);
-
 	void CheckAllCollision();
+
 	void DrawDebug() const;
+
 private:
 	bool CheckCollision(ColliderBase* a, ColliderBase* b);
 	bool CheckSphereSphere(ColliderBase* a, ColliderBase* b);
-
+	bool CheckCapsuleCapsule(ColliderBase* a, ColliderBase* b);
 };

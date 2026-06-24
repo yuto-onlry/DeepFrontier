@@ -38,10 +38,10 @@ void CharacterManager::Update(const InputManager& inputManager)
     collisionManager.Clear();
 
     if (player != nullptr)
-        collisionManager.AddCollider(player->GetBodyCollider());
+        collisionManager.AddCollider(player->GetCapsuleCollider());
 
     for (auto& enemy : enemies)
-        collisionManager.AddCollider(enemy->GetBodyCollider());
+        collisionManager.AddCollider(enemy->GetCapsuleCollider());
 
     collisionManager.CheckAllCollision();
 }

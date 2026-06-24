@@ -16,7 +16,8 @@ enum class ColliderTag
 enum class ColliderType
 {
 	Box,
-	Sphere
+	Sphere,
+	Capsule
 };
 
 class ColliderBase

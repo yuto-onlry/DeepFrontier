@@ -33,12 +33,12 @@ void Player::Init()
 	//アニメーションのセット
     AnimationPreset::SetAnimationPlayer(animationManager, modelHandle);
 
-    bodyCollider.SetTag(ColliderTag::Player);
-    bodyCollider.SetOwner(this);
-    bodyCollider.SetRadius(80.0f);
-    bodyCollider.SetPosition(VGet(position.x, position.y + 100.0f, position.z));
-    bodyCollider.SetActive(true);
-
+    capsuleCollider.SetTag(ColliderTag::Player);
+    capsuleCollider.SetOwner(this);
+    capsuleCollider.SetRadius(50.0f);
+    capsuleCollider.SetHeight(310.0f);
+    capsuleCollider.SetActive(true);
+    UpdateCollider();
     isDead = false;
 }
 void Player::Update(const InputManager& inputManager)
@@ -57,7 +57,7 @@ void Player::Update(const InputManager& inputManager)
         isMove = true;
     }
 
-    // 攻撃・回避中は一定時間、通常移動アニメーションで上書きしない
+	//アニメーションの更新
     if (actionTimer > 0)
     {
         actionTimer--;
@@ -67,7 +67,7 @@ void Player::Update(const InputManager& inputManager)
         return;
     }
 
-    // Xボタン：攻撃
+    //攻撃
     if (inputManager.IsButtonDown(InputManager::PadButton::X))
     {
         state = PlayerState::Attack;
@@ -76,10 +76,11 @@ void Player::Update(const InputManager& inputManager)
         actionTimer = 30;
         animationManager.Update();
         MV1SetPosition(modelHandle, position);
+        UpdateCollider();
         return;
     }
 
-    // Bボタン：回避
+    //回避
     if (inputManager.IsButtonDown(InputManager::PadButton::B))
     {
         state = PlayerState::Avoid;
@@ -95,10 +96,11 @@ void Player::Update(const InputManager& inputManager)
         actionTimer = 20;
         animationManager.Update();
         MV1SetPosition(modelHandle, position);
+        UpdateCollider();
         return;
     }
 
-    // Aボタン：ジャンプ
+    //ジャンプ
     if (inputManager.IsButtonDown(InputManager::PadButton::A) && isJumping == false)
     {
         isJumping = true;
@@ -136,9 +138,7 @@ void Player::Update(const InputManager& inputManager)
             animationManager.ChangeAnim(AnimationType::JumpEnd);
         }
         else
-        {
             animationManager.ChangeAnim(AnimationType::JumpLoop);
-        }
     }
     else
     {
@@ -175,16 +175,19 @@ void Player::Update(const InputManager& inputManager)
             VGet(DX_PI_F / 2.0f, angleY + modelOffset, 0.0f)
         );
     }
-
+     
     MV1SetPosition(modelHandle, position);
-    bodyCollider.SetPosition(VGet(position.x, position.y + 100.0f, position.z));
-}void Player::Draw()
+    capsuleCollider.SetPosition(VGet(position.x, position.y + 200.0f, position.z));
+}
+void Player::UpdateCollider()
+{
+	//プレイヤーコライダーの位置を更新
+    capsuleCollider.SetPosition(VGet(position.x, position.y + 200.0f, position.z));
+}
+void Player::Draw()
 {
     if (modelHandle != -1)
         CharacterBase::Draw();
-    else
-        //球体
-        DrawSphere3D(position, 30.0f, 16, GetColor(0, 255, 0), GetColor(0, 255, 0), TRUE);
 }
 
 void Player::Release()

@@ -47,7 +47,7 @@ void EnemyBase::Update(VECTOR playerPos)
 
     animationManager.ChangeAnim(AnimationType::Run);
     animationManager.Update();
-    bodyCollider.SetPosition(VGet(position.x, position.y + 80.0f, position.z));
+    capsuleCollider.SetPosition(VGet(position.x, position.y + 100.0f, position.z));
 }
 void EnemyBase::Release()
 {

@@ -36,6 +36,7 @@ public:
 
 	void Init() override;
 	void Update(const InputManager& inputManager);
+	void UpdateCollider();
 	void Draw() override;
 	void Release() override;
 
