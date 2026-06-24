@@ -2,6 +2,8 @@
 #include "CharacterBase.h"
 #include "animationManager.h"
 #include "InputManager.h"
+#include "PlayerAction.h"
+#include "SphereCollider.h"
 #include  <dinput.h>
 
 class Player : public CharacterBase
@@ -26,18 +28,22 @@ public:
 	AnimationManager animationManager; 
 	PlayerState state;
 	int animModelHandle;
-	int actionTimer;
 	float verticalVelocity;
 	bool isJumping;
+private:
+	PlayerAction playerAction;
+	VECTOR forward;
 
 public:
 	Player();
 	virtual ~Player();
-
+public:
 	void Init() override;
 	void Update(const InputManager& inputManager);
 	void UpdateCollider();
 	void Draw() override;
 	void Release() override;
-
+public:
+	SphereCollider* GetAttackCollider();
+	void DisableAttackCollider();
 };

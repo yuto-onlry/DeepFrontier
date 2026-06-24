@@ -92,14 +92,7 @@ bool AnimationManager::LoadAnimModel(const char* filePath)
     animSrcHandle = MV1LoadModel(filePath);
 
     if (animSrcHandle == -1)
-    {
-        printfDx("Animation model load failed\n");
         return false;
-    }
-
-    printfDx("Animation model load success\n");
-    printfDx("Animation num:%d\n", MV1GetAnimNum(animSrcHandle));
-
     return true;
 }
 

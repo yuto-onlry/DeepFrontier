@@ -8,8 +8,7 @@ Player::Player()
     :state(PlayerState::Idle),
 	 animModelHandle(-1),
      verticalVelocity(0.0f),
-     isJumping(false),
-     actionTimer(0)
+     isJumping(false)
 {
 }    
 Player::~Player()
@@ -32,13 +31,14 @@ void Player::Init()
     MV1SetPosition(modelHandle, position);
 	//アニメーションのセット
     AnimationPreset::SetAnimationPlayer(animationManager, modelHandle);
-
     capsuleCollider.SetTag(ColliderTag::Player);
     capsuleCollider.SetOwner(this);
     capsuleCollider.SetRadius(50.0f);
     capsuleCollider.SetHeight(310.0f);
     capsuleCollider.SetActive(true);
     UpdateCollider();
+    //アクションコライダー
+    playerAction.Init(this);
     isDead = false;
 }
 void Player::Update(const InputManager& inputManager)
@@ -58,48 +58,47 @@ void Player::Update(const InputManager& inputManager)
     }
 
 	//アニメーションの更新
-    if (actionTimer > 0)
+    if (playerAction.IsAction())
     {
-        actionTimer--;
+        playerAction.Update(position, forward);
 
         animationManager.Update();
         MV1SetPosition(modelHandle, position);
+        UpdateCollider();
         return;
     }
-
     //攻撃
     if (inputManager.IsButtonDown(InputManager::PadButton::X))
     {
         state = PlayerState::Attack;
         animationManager.ChangeAnim(AnimationType::Attack);
 
-        actionTimer = 30;
+        playerAction.StartAttack(position, forward);
+
         animationManager.Update();
         MV1SetPosition(modelHandle, position);
         UpdateCollider();
         return;
     }
-
     //回避
     if (inputManager.IsButtonDown(InputManager::PadButton::B))
     {
         state = PlayerState::Avoid;
         animationManager.ChangeAnim(AnimationType::Avoid);
 
-        // 入力方向へ少し回避移動
         if (isMove == true)
         {
             position.x += moveInput.x * 80.0f;
             position.z += moveInput.z * 80.0f;
         }
 
-        actionTimer = 20;
+        playerAction.StartAvoid();
+
         animationManager.Update();
         MV1SetPosition(modelHandle, position);
         UpdateCollider();
         return;
     }
-
     //ジャンプ
     if (inputManager.IsButtonDown(InputManager::PadButton::A) && isJumping == false)
     {
@@ -169,11 +168,14 @@ void Player::Update(const InputManager& inputManager)
     {
         float angleY = atan2f(velocity.x, velocity.z);
         float modelOffset = DX_PI_F;
-
-        MV1SetRotationXYZ(
-            modelHandle,
-            VGet(DX_PI_F / 2.0f, angleY + modelOffset, 0.0f)
-        );
+        float length = sqrtf(velocity.x * velocity.x + velocity.z * velocity.z);
+        if (length > 0.0f)
+        {
+            forward.x = velocity.x / length;
+            forward.y = 0.0f;
+            forward.z = velocity.z / length;
+        }
+        MV1SetRotationXYZ(modelHandle,VGet(DX_PI_F / 2.0f, angleY + modelOffset, 0.0f));
     }
      
     MV1SetPosition(modelHandle, position);
@@ -201,4 +203,13 @@ void Player::Release()
     }
 
     CharacterBase::Release();
+}
+SphereCollider* Player::GetAttackCollider()
+{
+    return playerAction.GetAttackCollider();
+}
+
+void Player::DisableAttackCollider()
+{
+    playerAction.AttackCollider();
 }

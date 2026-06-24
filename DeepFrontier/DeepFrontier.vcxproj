@@ -161,6 +161,7 @@
     <ClCompile Include="LittleEnemy.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ModelPreset.cpp" />
+    <ClCompile Include="PlayerAction.cpp" />
     <ClCompile Include="Playre.cpp" />
     <ClCompile Include="SphereCollider.cpp" />
   </ItemGroup>
@@ -177,6 +178,7 @@
     <ClInclude Include="LittleEnemy.h" />
     <ClInclude Include="ModelPreset.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="PlayerAction.h" />
     <ClInclude Include="SphereCollider.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

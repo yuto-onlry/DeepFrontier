@@ -2,6 +2,9 @@
 #include "CharacterBase.h"
 #include "AnimationManager.h"
 
+/// <summary>
+/// エネミー基底クラス
+/// </summary>
 class EnemyBase : public CharacterBase
 {
 protected:

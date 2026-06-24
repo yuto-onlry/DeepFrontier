@@ -22,14 +22,10 @@ void CollisionManager::Clear()
 void CollisionManager::AddCollider(ColliderBase* collider)
 {
     if (collider == nullptr)
-    {
         return;
-    }
 
     if (collider->IsActive() == false)
-    {
         return;
-    }
 
     colliders.push_back(collider);
 }

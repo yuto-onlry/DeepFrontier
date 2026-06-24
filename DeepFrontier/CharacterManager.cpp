@@ -22,28 +22,91 @@ void CharacterManager::Init()
 void CharacterManager::Update(const InputManager& inputManager)
 {
     if (player != nullptr)
+    {
         player->Update(inputManager);
+    }
+
     VECTOR playerPos = GetPlayerPosition();
 
     for (auto& enemy : enemies)
+    {
         enemy->Update(playerPos);
-
-    // 死亡した敵を削除
-    for (auto it = enemies.begin(); it != enemies.end();)
-        if ((*it)->IsDead() == true)
-            it = enemies.erase(it);
-        else
-            ++it;
+    }
 
     collisionManager.Clear();
 
     if (player != nullptr)
+    {
         collisionManager.AddCollider(player->GetCapsuleCollider());
+        collisionManager.AddCollider(player->GetAttackCollider());
+    }
 
     for (auto& enemy : enemies)
+    {
         collisionManager.AddCollider(enemy->GetCapsuleCollider());
+    }
 
     collisionManager.CheckAllCollision();
+
+    const auto& hits = collisionManager.GetCollisionHit();
+
+    for (const auto& hit : hits)
+    {
+        ColliderBase* a = hit.colliderPlayer;
+        ColliderBase* b = hit.colliderEnemy;
+
+        if (a == nullptr || b == nullptr)
+        {
+            continue;
+        }
+
+        ColliderBase* attackCollider = nullptr;
+        ColliderBase* enemyCollider = nullptr;
+
+        if (a->GetTag() == ColliderTag::PlayerAttack &&
+            b->GetTag() == ColliderTag::Enemy)
+        {
+            attackCollider = a;
+            enemyCollider = b;
+        }
+        else if (a->GetTag() == ColliderTag::Enemy &&
+            b->GetTag() == ColliderTag::PlayerAttack)
+        {
+            attackCollider = b;
+            enemyCollider = a;
+        }
+
+        if (attackCollider != nullptr && enemyCollider != nullptr)
+        {
+            CharacterBase* enemy = enemyCollider->GetOwner();
+
+            if (enemy != nullptr)
+            {
+                enemy->Damage(999);
+
+                if (player != nullptr)
+                {
+                    player->DisableAttackCollider();
+                }
+
+                printfDx("Enemy Hit!\n");
+            }
+        }
+    }
+
+    // 死亡した敵を削除
+    for (auto it = enemies.begin(); it != enemies.end();)
+    {
+        if ((*it)->IsDead() == true)
+        {
+            (*it)->Release();
+            it = enemies.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
 }
 void CharacterManager::Draw()
 {

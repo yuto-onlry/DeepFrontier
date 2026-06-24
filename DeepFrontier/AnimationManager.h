@@ -1,6 +1,9 @@
 #pragma once
 #include "DxLib.h"
 
+/// <summary>
+/// アニメーション管理
+/// </summary>
 enum class AnimationType
 {
 	Idle,       // 待機
