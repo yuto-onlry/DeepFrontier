@@ -20,7 +20,7 @@ public:
     void SetRadius(float r);
 
     VECTOR GetTopCenter() const;
-    VECTOR GetCenter() const;
+    VECTOR GetBottomCenter() const;
 
     void DrawDebug() const override;
 };

@@ -18,6 +18,9 @@ void CharacterManager::Init()
 
     // 敵の初期化＋配置
     AddLittleEnemy(VGet(300.0f, 0.0f, 300.0f));
+    AddLittleEnemy(VGet(100.0f, 0.0f, 100.0f));
+    AddLittleEnemy(VGet(200.0f, 0.0f, 200.0f));
+    AddLittleEnemy(VGet(400.0f, 0.0f, 400.0f));
 }
 void CharacterManager::Update(const InputManager& inputManager)
 {
@@ -45,15 +48,12 @@ void CharacterManager::Update(const InputManager& inputManager)
     {
         collisionManager.AddCollider(enemy->GetCapsuleCollider());
     }
-
-    collisionManager.CheckAllCollision();
-
+    collisionManager.CheckCollision();
     const auto& hits = collisionManager.GetCollisionHit();
-
     for (const auto& hit : hits)
     {
-        ColliderBase* a = hit.colliderPlayer;
-        ColliderBase* b = hit.colliderEnemy;
+        ColliderBase* a = hit.colliderA;
+        ColliderBase* b = hit.colliderB;
 
         if (a == nullptr || b == nullptr)
         {
@@ -88,8 +88,8 @@ void CharacterManager::Update(const InputManager& inputManager)
                 {
                     player->DisableAttackCollider();
                 }
-
-                printfDx("Enemy Hit!\n");
+                collisionManager.Clear();
+                break;
             }
         }
     }
@@ -102,8 +102,7 @@ void CharacterManager::Update(const InputManager& inputManager)
             (*it)->Release();
             it = enemies.erase(it);
         }
-        else
-        {
+        else {
             ++it;
         }
     }
@@ -148,7 +147,7 @@ Player* CharacterManager::GetPlayer()
     return player.get();
 }
 
-// 弱い敵を追加する関数
+// 敵の生成関数(弱)
 void CharacterManager::AddLittleEnemy(VECTOR pos)
 {
     std::unique_ptr<EnemyBase> enemy = std::make_unique<LittleEnemy>();

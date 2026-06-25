@@ -30,7 +30,7 @@ void CollisionManager::AddCollider(ColliderBase* collider)
     colliders.push_back(collider);
 }
 
-void CollisionManager::CheckAllCollision()
+void CollisionManager::CheckCollision()
 {
     collisionHit.clear();
 
@@ -43,8 +43,8 @@ void CollisionManager::CheckAllCollision()
             if (CheckCollision(a, b) == true)
             {
                 CollisionHit hit;
-                hit.colliderPlayer = a;
-                hit.colliderEnemy = b;
+                hit.colliderA = a;
+                hit.colliderB = b;
 
                 collisionHit.push_back(hit);
             }
@@ -92,6 +92,18 @@ bool CollisionManager::CheckCollision(ColliderBase* a, ColliderBase* b)
     {
         return CheckCapsuleCapsule(a, b);
     }
+    if (a->GetColliderType() == ColliderType::Sphere &&
+        b->GetColliderType() == ColliderType::Capsule)
+    {
+        return CheckSphereCapsule(a, b);
+    }
+
+    // Enemyカプセル × 攻撃Sphere
+    if (a->GetColliderType() == ColliderType::Capsule &&
+        b->GetColliderType() == ColliderType::Sphere)
+    {
+        return CheckSphereCapsule(b, a);
+    }
 
     return false;
 }
@@ -120,10 +132,10 @@ bool CollisionManager::CheckCapsuleCapsule(ColliderBase* a, ColliderBase* b)
     CapsuleCollider* capB = static_cast<CapsuleCollider*>(b);
 
     VECTOR aTop = capA->GetTopCenter();
-    VECTOR aBottom = capA->GetCenter();
+    VECTOR aBottom = capA->GetBottomCenter();
 
     VECTOR bTop = capB->GetTopCenter();
-    VECTOR bBottom = capB->GetCenter();
+    VECTOR bBottom = capB->GetBottomCenter();
 
     // XZ平面の距離
     float dx = capA->GetPosition().x - capB->GetPosition().x;
@@ -155,6 +167,48 @@ bool CollisionManager::CheckCapsuleCapsule(ColliderBase* a, ColliderBase* b)
     float distanceSq = xzDistance + yDistance * yDistance;
 
     float radius = capA->GetRadius() + capB->GetRadius();
+    float radiusSq = radius * radius;
+
+    return distanceSq <= radiusSq;
+}
+bool CollisionManager::CheckSphereCapsule(ColliderBase* sphere, ColliderBase* capsule)
+{
+    SphereCollider* sphereCol = static_cast<SphereCollider*>(sphere);
+    CapsuleCollider* capsuleCol = static_cast<CapsuleCollider*>(capsule);
+
+    VECTOR spherePos = sphereCol->GetPosition();
+
+    VECTOR capsuleTop = capsuleCol->GetTopCenter();
+    VECTOR capsuleBottom = capsuleCol->GetBottomCenter();
+
+    // XZ平面の距離
+    float dx = spherePos.x - capsuleCol->GetPosition().x;
+    float dz = spherePos.z - capsuleCol->GetPosition().z;
+
+    float xzDistanceSq = dx * dx + dz * dz;
+
+    // Y方向の距離
+    float minY = capsuleBottom.y;
+    float maxY = capsuleTop.y;
+
+    float yDistance = 0.0f;
+
+    if (spherePos.y < minY)
+    {
+        yDistance = minY - spherePos.y;
+    }
+    else if (spherePos.y > maxY)
+    {
+        yDistance = spherePos.y - maxY;
+    }
+    else
+    {
+        yDistance = 0.0f;
+    }
+
+    float distanceSq = xzDistanceSq + yDistance * yDistance;
+
+    float radius = sphereCol->GetRadius() + capsuleCol->GetRadius();
     float radiusSq = radius * radius;
 
     return distanceSq <= radiusSq;

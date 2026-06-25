@@ -40,7 +40,7 @@ VECTOR CapsuleCollider::GetTopCenter() const
     return VGet(position.x, position.y + (height * 0.5f - radius), position.z);
 }
 
-VECTOR CapsuleCollider::GetCenter() const
+VECTOR CapsuleCollider::GetBottomCenter() const
 {
     return VGet(position.x, position.y - (height * 0.5f - radius), position.z);
 }
@@ -58,7 +58,7 @@ void CapsuleCollider::DrawDebug() const
         color = GetColor(255, 255, 0);
 
     VECTOR top = GetTopCenter();
-    VECTOR bottom = GetCenter();
+    VECTOR bottom = GetBottomCenter();
 
     // カプセルコライダーデバッグ表示
     DrawCapsule3D(bottom,top,radius,16,color,color,FALSE);

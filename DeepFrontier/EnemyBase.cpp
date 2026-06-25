@@ -28,17 +28,17 @@ void EnemyBase::Update(VECTOR playerPos)
 {
     if (isDead == true)
         return;
+
+    // 攻撃範囲内なら止まる
     if (GetAttackRange(playerPos) == true)
     {
         velocity = VGet(0.0f, 0.0f, 0.0f);
         animationManager.ChangeAnim(AnimationType::Idle);
         animationManager.Update();
-        return;
-    }
-    // 攻撃範囲内なら止まる
-    if (GetAttackRange(playerPos) == true)
-    {
-        velocity = VGet(0.0f, 0.0f, 0.0f);
+
+        MV1SetPosition(modelHandle, position);
+        UpdateCollider();
+
         return;
     }
 
@@ -47,7 +47,9 @@ void EnemyBase::Update(VECTOR playerPos)
 
     animationManager.ChangeAnim(AnimationType::Run);
     animationManager.Update();
-    capsuleCollider.SetPosition(VGet(position.x, position.y + 100.0f, position.z));
+
+    MV1SetPosition(modelHandle, position);
+    UpdateCollider();
 }
 void EnemyBase::Release()
 {
@@ -118,4 +120,10 @@ void EnemyBase::Draw()
     {
         CharacterBase::Draw();
     }
+}
+void EnemyBase::UpdateCollider()
+{
+    capsuleCollider.SetPosition(
+        VGet(position.x, position.y + 150.0f, position.z)
+    );
 }

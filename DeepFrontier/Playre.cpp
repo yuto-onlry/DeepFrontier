@@ -31,6 +31,7 @@ void Player::Init()
     MV1SetPosition(modelHandle, position);
 	//アニメーションのセット
     AnimationPreset::SetAnimationPlayer(animationManager, modelHandle);
+    //コライダーセット
     capsuleCollider.SetTag(ColliderTag::Player);
     capsuleCollider.SetOwner(this);
     capsuleCollider.SetRadius(50.0f);

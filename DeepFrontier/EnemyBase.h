@@ -21,6 +21,7 @@ public:
 
 	//playerの座標を受け取る
 	virtual void Update(VECTOR playerPos);
+	void UpdateCollider();
 	virtual void Release() override;
 	virtual void Draw() override;
 
