@@ -53,12 +53,9 @@ void CharacterBase::Damage(int damage)
 	int finalDamage = damage - defense;
 
 	if (finalDamage < 1)
-	{
 		finalDamage = 1;
-	}
 
 	hp -= finalDamage;
-
 	if (hp <= 0)
 	{
 		hp = 0;
@@ -74,6 +71,15 @@ bool CharacterBase::IsDead() const
 VECTOR CharacterBase::GetPosition() const
 {
 	return position;
+}
+int CharacterBase::GetHp() const
+{
+	return hp;
+}
+
+int CharacterBase::GetMaxHp() const
+{
+	return maxHp;
 }
 
 void CharacterBase::SetPosition(VECTOR pos)

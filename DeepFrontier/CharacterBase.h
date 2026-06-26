@@ -8,6 +8,7 @@ protected:
 	VECTOR position;	//キャラクター位置
 	VECTOR velocity;	//キャラクター速度
 	int hp;				//キャラクターの体力
+	int maxHp;			//最大HP
 	int attack;			//キャラクターの攻撃力
 	int defense;		//キャラクターの防御力
 	int modelHandle;	//キャラクターモデルのハンドル
@@ -28,8 +29,11 @@ public:
 
 	virtual void Damage(int damage);
 	bool IsDead() const;
-
+public:
 	VECTOR GetPosition() const;
+	int GetHp() const;
+	int GetMaxHp() const;
+public:
 	void SetPosition(VECTOR pos);
 
 

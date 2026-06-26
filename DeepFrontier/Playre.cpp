@@ -17,7 +17,8 @@ Player::~Player()
 
 void Player::Init()
 {
-    hp = 100;
+    maxHp = 100;
+    hp = maxHp;
     attack = 10;
     defense = 2;
 

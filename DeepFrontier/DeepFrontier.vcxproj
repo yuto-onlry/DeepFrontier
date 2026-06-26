@@ -164,6 +164,7 @@
     <ClCompile Include="PlayerAction.cpp" />
     <ClCompile Include="Playre.cpp" />
     <ClCompile Include="SphereCollider.cpp" />
+    <ClCompile Include="UIManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationManager.h" />
@@ -180,6 +181,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerAction.h" />
     <ClInclude Include="SphereCollider.h" />
+    <ClInclude Include="UIManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

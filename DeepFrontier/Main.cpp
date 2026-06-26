@@ -1,6 +1,7 @@
 #include "DxLib.h"
 #include "CharacterManager.h"
 #include "InputManager.h"
+#include "UIManager.h"  
 
 //デバック用
 void DrawGround()
@@ -66,20 +67,36 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     CharacterManager characterManager;
     characterManager.Init();
 
+    UIManager uiManager;
+    uiManager.Init();
+
     while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
     {
         ClearDrawScreen();
+
         inputManager.Update();
         characterManager.Update(inputManager);
-        //デバック用
+
+        // 3D描画
         DrawGround();
         characterManager.Draw();
+
+        // UI描画
+        if (characterManager.GetPlayer() != nullptr)
+        {
+            Player* player = characterManager.GetPlayer();
+
+            uiManager.DrawPlayerHp(
+                player->GetHp(),
+                player->GetMaxHp()
+            );
+        }
 
         ScreenFlip();
     }
 
-
     characterManager.Release();
+    uiManager.Release();
 
     DxLib_End();
 
