@@ -29,10 +29,20 @@ void AnimationPreset::SetAnimationPlayer(AnimationManager& animManager, int mode
 void AnimationPreset::SetAnimationLittleEnemy(AnimationManager& animManager, int modelHandle)
 {
     animManager.Init(modelHandle);
-	if (animManager.LoadAnimModel("../Animation/Enemy/Ran.mv1") == true)	
+	if (animManager.LoadAnimModel("../Animation/Enemy/Idle.mv1") == true)	
+	{
+		// アニメーション番号を指定+割り振り
+		animManager.SetAnimIndex(AnimationType::Idle, 0);
+	}
+	if(animManager.LoadAnimModel("../Animation/Enemy/Ran.mv1") == true)
 	{
 		// アニメーション番号を指定+割り振り
 		animManager.SetAnimIndex(AnimationType::Run, 0);
+	}
+	if(animManager.LoadAnimModel("../Animation/Enemy/Attack.mv1") == true)
+	{
+		// アニメーション番号を指定+割り振り
+		animManager.SetAnimIndex(AnimationType::Attack, 0);
 	}
 
 }
