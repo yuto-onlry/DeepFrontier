@@ -58,7 +58,10 @@ void Player::Update(const InputManager& inputManager)
     {
         isMove = true;
     }
-
+    if (CheckHitKey(KEY_INPUT_H))
+    {
+		Player::Damage(10);
+    }
 	//アニメーションの更新
     if (playerAction.IsAction())
     {

@@ -8,6 +8,8 @@ private:
     int playerHpFillHandle;
     int playerHpFrameHandle;
 
+    float playerDelayHpRate;
+
 public:
     UIManager();
     ~UIManager();
