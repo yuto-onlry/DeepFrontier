@@ -24,6 +24,9 @@
     <ClCompile Include="Playre.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="EnemyBase.cpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClCompile>
     <ClCompile Include="LittleEnemy.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -61,9 +64,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Weapon.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemyBase.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

@@ -4,9 +4,6 @@
 PlayerAction::PlayerAction()
     : currentAction(PlayerActionType::None),
     actionTimer(0),
-    attackFrame(0),
-    attackHitStartFrame(0),
-    attackHitEndFrame(0),
     attackHit(false)
 {
 }
@@ -19,11 +16,6 @@ void PlayerAction::Init(CharacterBase* owner)
 {
     currentAction = PlayerActionType::None;
     actionTimer = 0;
-
-    attackFrame = 0;
-    attackHitStartFrame = 10;
-    attackHitEndFrame = 16;
-
     attackHit = false;
 
     attackCollider.SetTag(ColliderTag::PlayerAttack);
@@ -35,20 +27,14 @@ void PlayerAction::Init(CharacterBase* owner)
 void PlayerAction::StartAttack(VECTOR playerPos, VECTOR forward)
 {
     currentAction = PlayerActionType::Attack;
-
     actionTimer = 30;
-	// 攻撃のフレーム数をリセット
-    attackFrame = 0;
-	//判定を出すフレーム
-    attackHitStartFrame = 14;
-	//判定を消すフレーム
-    attackHitEndFrame = 25;
-
     attackHit = false;
 
-	// 攻撃コライダーの位置を更新
-    attackCollider.SetActive(false);
+    attackCollider.SetActive(true);
+    attackCollider.SetPosition(
+    VGet(playerPos.x + forward.x * 120.0f,playerPos.y + 120.0f,playerPos.z + forward.z * 120.0f));
 }
+
 void PlayerAction::StartAvoid()
 {
     currentAction = PlayerActionType::Avoid;
@@ -68,36 +54,23 @@ void PlayerAction::Update(VECTOR playerPos, VECTOR forward)
 
     actionTimer--;
 
-    if (currentAction == PlayerActionType::Attack)
+    if (currentAction == PlayerActionType::Attack && attackHit == false)
     {
-        attackFrame++;
-
-		// 攻撃判定を出すフレームだけture
-        if (attackFrame >= attackHitStartFrame && attackFrame <= attackHitEndFrame && attackHit == true)
-        {
-            attackCollider.SetActive(true);
-
-            attackCollider.SetPosition(
-                VGet(playerPos.x + forward.x * 120.0f, playerPos.y + 120.0f, playerPos.z + forward.z * 120.0f));
-        }
-        else
-        {
-            attackCollider.SetActive(false);
-        }
+        attackCollider.SetActive(true);
+        attackCollider.SetPosition(
+        VGet(playerPos.x + forward.x * 120.0f,playerPos.y + 120.0f,playerPos.z + forward.z * 120.0f));
     }
-    else if (currentAction == PlayerActionType::Avoid)
-    {
+    else
         attackCollider.SetActive(false);
-    }
 
     if (actionTimer <= 0)
     {
         currentAction = PlayerActionType::None;
         attackCollider.SetActive(false);
         attackHit = false;
-        attackFrame = 0;
     }
 }
+
 bool PlayerAction::IsAction() const
 {
     return actionTimer > 0;
