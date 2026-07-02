@@ -4,6 +4,8 @@
 #include "InputManager.h"
 #include "PlayerAction.h"
 #include "SphereCollider.h"
+#include "Weapon.h"
+
 #include  <dinput.h>
 
 class Player : public CharacterBase
@@ -33,6 +35,7 @@ public:
 private:
 	PlayerAction playerAction;
 	VECTOR forward;
+	Weapon weapon;
 
 public:
 	Player();

@@ -49,8 +49,12 @@ void UIManager::DrawPlayerHp(int hp, int maxHp)
         playerDelayHpRate = hpRate;
     }
 
+    int screenWidth = 0;
+    int screenHeight = 0;
+    GetScreenState(&screenWidth, &screenHeight, nullptr);
+
     int x = 20;
-    int y = 20;
+    int y = screenHeight - 60;
 
     int width = 250;
     int height = 24;

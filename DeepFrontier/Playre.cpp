@@ -39,6 +39,7 @@ void Player::Init()
     capsuleCollider.SetHeight(310.0f);
     capsuleCollider.SetActive(true);
     UpdateCollider();
+    weapon.Init(modelHandle); 
     //アクションコライダー
     playerAction.Init(this);
     isDead = false;
@@ -62,7 +63,11 @@ void Player::Update(const InputManager& inputManager)
     {
 		Player::Damage(10);
     }
-	//アニメーションの更新
+    MV1SetPosition(modelHandle, position);
+    UpdateCollider();
+
+    weapon.Update();
+    //アニメーションの更新
     if (playerAction.IsAction())
     {
         playerAction.Update(position, forward);
@@ -70,6 +75,8 @@ void Player::Update(const InputManager& inputManager)
         animationManager.Update();
         MV1SetPosition(modelHandle, position);
         UpdateCollider();
+        weapon.Update();
+
         return;
     }
     //攻撃
@@ -83,6 +90,8 @@ void Player::Update(const InputManager& inputManager)
         animationManager.Update();
         MV1SetPosition(modelHandle, position);
         UpdateCollider();
+        weapon.Update();
+
         return;
     }
     //回避
@@ -102,6 +111,8 @@ void Player::Update(const InputManager& inputManager)
         animationManager.Update();
         MV1SetPosition(modelHandle, position);
         UpdateCollider();
+        weapon.Update();
+
         return;
     }
     //ジャンプ
@@ -195,10 +206,13 @@ void Player::Draw()
 {
     if (modelHandle != -1)
         CharacterBase::Draw();
+
+    weapon.Draw();
 }
 
 void Player::Release()
 {
+    weapon.Release();
     animationManager.Release();
 
     if (animModelHandle != -1)
