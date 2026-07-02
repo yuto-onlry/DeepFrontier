@@ -83,12 +83,6 @@ void CharacterManager::Update(const InputManager& inputManager)
             if (enemy != nullptr)
             {
                 enemy->Damage(999);
-
-                if (player != nullptr)
-                {
-                    player->DisableAttackCollider();
-                }
-                collisionManager.Clear();
                 break;
             }
         }
@@ -99,10 +93,10 @@ void CharacterManager::Update(const InputManager& inputManager)
     {
         if ((*it)->IsDead() == true)
         {
-            (*it)->Release();
             it = enemies.erase(it);
         }
-        else {
+        else
+        {
             ++it;
         }
     }
