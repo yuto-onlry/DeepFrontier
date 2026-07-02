@@ -87,19 +87,6 @@ void CharacterManager::Update(const InputManager& inputManager)
             }
         }
     }
-
-    // 死亡した敵を削除
-    for (auto it = enemies.begin(); it != enemies.end();)
-    {
-        if ((*it)->IsDead() == true)
-        {
-            it = enemies.erase(it);
-        }
-        else
-        {
-            ++it;
-        }
-    }
 }
 void CharacterManager::Draw()
 {

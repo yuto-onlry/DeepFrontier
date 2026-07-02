@@ -27,9 +27,11 @@ void CollisionManager::AddCollider(ColliderBase* collider)
     if (collider->IsActive() == false)
         return;
 
+    if (std::find(colliders.begin(), colliders.end(), collider) != colliders.end())
+        return;
+
     colliders.push_back(collider);
 }
-
 void CollisionManager::CheckCollision()
 {
     collisionHit.clear();

@@ -27,7 +27,10 @@ void EnemyBase::Init()
 void EnemyBase::Update(VECTOR playerPos)
 {
     if (isDead == true)
+    {
+        capsuleCollider.SetActive(false);
         return;
+    }
 
     // 攻撃範囲内なら止まる
     if (GetAttackRange(playerPos) == true)
@@ -42,7 +45,6 @@ void EnemyBase::Update(VECTOR playerPos)
         return;
     }
 
-    // 攻撃範囲外ならプレイヤーへ近づく
     GetMovePlayerPos(playerPos);
 
     animationManager.ChangeAnim(AnimationType::Run);
@@ -50,10 +52,6 @@ void EnemyBase::Update(VECTOR playerPos)
 
     MV1SetPosition(modelHandle, position);
     UpdateCollider();
-}
-void EnemyBase::Release()
-{
-    CharacterBase::Release();
 }
 void EnemyBase::GetMovePlayerPos(VECTOR playerPos)
 {
@@ -95,6 +93,30 @@ void EnemyBase::GetMovePlayerPos(VECTOR playerPos)
         );
     }
 }
+void EnemyBase::Damage(int damage)
+{
+    if (isDead == true)
+    {
+        return;
+    }
+
+    hp -= damage;
+
+    printfDx("Enemy Damage HP:%d\n", hp);
+
+    if (hp <= 0)
+    {
+        hp = 0;
+        isDead = true;
+        capsuleCollider.SetActive(false);
+
+        printfDx("Enemy Dead\n");
+    }
+}
+bool EnemyBase::IsDead() const
+{
+    return isDead;
+}
 bool EnemyBase::GetAttackRange(VECTOR playerPos)
 {
     float dx = playerPos.x - position.x;
@@ -123,7 +145,17 @@ void EnemyBase::Draw()
 }
 void EnemyBase::UpdateCollider()
 {
-    capsuleCollider.SetPosition(
+    if (isDead == true)
+    {
+        capsuleCollider.SetActive(false);
+        return;
+    }
+
+    capsuleCollider.SetPosition(    
         VGet(position.x, position.y + 150.0f, position.z)
     );
+}
+void EnemyBase::Release()
+{
+    CharacterBase::Release();
 }

@@ -36,6 +36,7 @@ private:
 	PlayerAction playerAction;
 	VECTOR forward;
 	Weapon weapon;
+	bool isAttackHit;
 
 public:
 	Player();
@@ -49,4 +50,4 @@ public:
 public:
 	SphereCollider* GetAttackCollider();
 	void DisableAttackCollider();
-};
+};	

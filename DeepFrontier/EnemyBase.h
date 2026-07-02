@@ -24,6 +24,8 @@ public:
 	void UpdateCollider();
 	virtual void Release() override;
 	virtual void Draw() override;
+	void Damage(int damage);
+	bool IsDead() const;
 
 protected:
 	void GetMovePlayerPos(VECTOR playerPos);

@@ -39,7 +39,7 @@ void Player::Init()
     capsuleCollider.SetHeight(310.0f);
     capsuleCollider.SetActive(true);
     UpdateCollider();
-    weapon.Init(modelHandle); 
+    weapon.Init(modelHandle, this); 
     //アクションコライダー
     playerAction.Init(this);
     isDead = false;
@@ -52,6 +52,7 @@ void Player::Update(const InputManager& inputManager)
     float dashSpeed = 9.0f;
 
     VECTOR moveInput = inputManager.GetLeftStick();
+    weapon.SetAttackColliderActive(false);
 
     bool isMove = false;
 
@@ -71,7 +72,10 @@ void Player::Update(const InputManager& inputManager)
     if (playerAction.IsAction())
     {
         playerAction.Update(position, forward);
-
+        if (state == PlayerState::Attack)
+        {
+            weapon.SetAttackColliderActive(true);
+        }
         animationManager.Update();
         MV1SetPosition(modelHandle, position);
         UpdateCollider();
@@ -107,7 +111,7 @@ void Player::Update(const InputManager& inputManager)
         }
 
         playerAction.StartAvoid();
-
+        weapon.SetAttackColliderActive(true);
         animationManager.Update();
         MV1SetPosition(modelHandle, position);
         UpdateCollider();
@@ -195,8 +199,8 @@ void Player::Update(const InputManager& inputManager)
     }
      
     MV1SetPosition(modelHandle, position);
-    capsuleCollider.SetPosition(VGet(position.x, position.y + 200.0f, position.z));
-}
+    UpdateCollider();
+    weapon.Update();}
 void Player::UpdateCollider()
 {
 	//プレイヤーコライダーの位置を更新
@@ -223,12 +227,13 @@ void Player::Release()
 
     CharacterBase::Release();
 }
+// 攻撃判定のコライダーを取得
 SphereCollider* Player::GetAttackCollider()
 {
-    return playerAction.GetAttackCollider();
+    return weapon.GetAttackCollider();
 }
-
+// 攻撃判定のコライダーを無効化
 void Player::DisableAttackCollider()
 {
-    playerAction.AttackCollider();
+    weapon.SetAttackColliderActive(false);
 }
