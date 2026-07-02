@@ -18,6 +18,11 @@ private:
 
     int actionTimer;
     bool attackHit;
+	// 攻撃のフレーム数
+    int attackFrame;
+	// 攻撃が当たるフレームの開始と終了
+    int attackHitStartFrame;
+    int attackHitEndFrame;
 
     SphereCollider attackCollider;
 
