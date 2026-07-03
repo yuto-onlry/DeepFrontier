@@ -41,6 +41,9 @@ void CharacterBase::Draw()
 	}
 }
 
+/// <summary>
+/// リソース解放
+/// </summary>
 void CharacterBase::Release()
 {
 	if (modelHandle != -1)
@@ -48,8 +51,9 @@ void CharacterBase::Release()
 		MV1DeleteModel(modelHandle);
 		modelHandle = -1;
 	}
-}
 
+	capsuleCollider.SetActive(false);
+}
 void CharacterBase::Damage(int damage)
 {
 	if (isDead == true)

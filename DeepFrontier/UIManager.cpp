@@ -92,13 +92,13 @@ void UIManager::Release()
     if (playerHpBackHandle != -1)
     {
         DeleteGraph(playerHpBackHandle);
-        playerHpBackHandle = -1;
+        playerHpBackHandle   = -1;
     }
 
     if (playerHpFillHandle != -1)
     {
         DeleteGraph(playerHpFillHandle);
-        playerHpFillHandle = -1;
+        playerHpFillHandle   = -1;
     }
 
     if (playerHpFrameHandle != -1)

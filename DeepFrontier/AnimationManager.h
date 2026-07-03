@@ -26,8 +26,11 @@ class AnimationManager
 private:
     int modelHandle;        // 操作するモデル
     int animSrcHandle;      // アニメーションのソースハンドル
+    //animSrcHandleTableはアニメーションタイプごとに別MV1を読み込む用
+    int animSrcHandleTable[(int)AnimationType::Max];
+    AnimationType currentAnimType;
     int currentAnimIndex;   // 現在のアニメーション番号
-    int attachAnimIndex;    // Attachされたアニメーション番号
+    int attachAnimIndex;    // アタッチされたアニメーション番号
 
     float animTime;         // 現在の再生時間
     float animTotalTime;    // アニメーション全体の長さ
@@ -37,16 +40,18 @@ private:
 
 public:
     AnimationManager();
-    ~AnimationManager();
+     ~AnimationManager();
 
     void Init(int model);
     void Update();
     void Release();
+    // アニメーションタイプごとに別MV1を読み込む用
+    bool LoadAnimModelForType(AnimationType type, const char* filePath, int animIndex);
     void ChangeAnim(AnimationType type);
     bool LoadAnimModel(const char* filePath);
 
 
-	// アニメーション番号を設定するセッター
+    // アニメーション番号を設定するセッター
     void SetAnimIndex(AnimationType type, int animIndex);
     void SetSpeed(float speed);
 };

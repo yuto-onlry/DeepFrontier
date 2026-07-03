@@ -2,6 +2,7 @@
 #include "CharacterManager.h"
 #include "InputManager.h"
 #include "UIManager.h"  
+#include "ModelPreset.h"
 
 //デバック用
 void DrawGround()
@@ -53,6 +54,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     {
         return -1;
     }
+
     SetBackgroundColor(10, 10, 20);
     SetDrawScreen(DX_SCREEN_BACK);
 
@@ -63,43 +65,48 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         VGet(0.0f, 500.0f, -800.0f),
         VGet(0.0f, 0.0f, 0.0f)
     );
-    InputManager inputManager;
-    CharacterManager characterManager;
-    characterManager.Init();
 
-    UIManager uiManager;
-    uiManager.Init();
-
-    while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
     {
-        ClearDrawScreen();
+        InputManager inputManager;
 
-        inputManager.Update();
-        characterManager.Update(inputManager);
+        CharacterManager characterManager;
+        characterManager.Init();
 
-        // 3D描画
-        DrawGround();
-        characterManager.Draw();
+        UIManager uiManager;
+        uiManager.Init();
 
-        // UI描画
-        if (characterManager.GetPlayer() != nullptr)
+        while (ProcessMessage() == 0)
         {
-            Player* player = characterManager.GetPlayer();
+            if (CheckHitKey(KEY_INPUT_ESCAPE))
+            {
+                break;
+            }
 
-            uiManager.DrawPlayerHp(
-                player->GetHp(),
-                player->GetMaxHp()
-            );
+            ClearDrawScreen();
+
+            inputManager.Update();
+            characterManager.Update(inputManager);
+
+            DrawGround();
+            characterManager.Draw();
+
+            if (characterManager.GetPlayer() != nullptr)
+            {
+                Player* player = characterManager.GetPlayer();
+
+                uiManager.DrawPlayerHp(
+                    player->GetHp(),
+                    player->GetMaxHp()
+                );
+            }
+
+            ScreenFlip();
         }
-
-        ScreenFlip();
     }
-
-    characterManager.Release();
-    uiManager.Release();
+	//モデルリソース解放
+    ModelPreset::Release();
 
     DxLib_End();
 
     return 0;
 }
-

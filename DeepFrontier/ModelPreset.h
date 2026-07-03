@@ -6,8 +6,12 @@
 /// </summary>
 class ModelPreset
 {
+private:
+    static int littleEnemyBaseHandle;
+
 public:
-	// プレイヤーと敵のモデルを読み込む関数
-	static int LoadPlayerModel();
-	static int LoadLittleEnemyModel();
+    static int LoadPlayerModel();
+    static int LoadLittleEnemyModel();
+
+    static void Release();
 };

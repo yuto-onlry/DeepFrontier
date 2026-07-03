@@ -1,8 +1,9 @@
 #include "AnimationManager.h"
 
 AnimationManager::AnimationManager()
-    :modelHandle(-1),
-	animSrcHandle(-1),
+    : modelHandle(-1),
+    animSrcHandle(-1),
+    currentAnimType(AnimationType::Max),
     currentAnimIndex(-1),
     attachAnimIndex(-1),
     animTime(0.0f),
@@ -12,13 +13,14 @@ AnimationManager::AnimationManager()
     for (int i = 0; i < (int)AnimationType::Max; i++)
     {
         animNoTable[i] = -1;
+        animSrcHandleTable[i] = -1;
     }
 }
 
 
 AnimationManager::~AnimationManager()
 {
-    Release();
+   
 }
 
 void AnimationManager::Init(int model)
@@ -26,6 +28,7 @@ void AnimationManager::Init(int model)
     modelHandle = model;
     animSrcHandle = -1;
 
+    currentAnimType = AnimationType::Max;
     currentAnimIndex = -1;
     attachAnimIndex = -1;
 
@@ -34,7 +37,10 @@ void AnimationManager::Init(int model)
     animSpeed = 0.5f;
 
     for (int i = 0; i < (int)AnimationType::Max; i++)
+    {
         animNoTable[i] = -1;
+        animSrcHandleTable[i] = -1;
+    }
 }
 void AnimationManager::Update()
 {
@@ -60,16 +66,36 @@ void AnimationManager::Update()
 
 void AnimationManager::ChangeAnim(AnimationType type)
 {
-    if (animSrcHandle == -1)
-        return;
+    int typeIndex = (int)type;
 
-    int animindex = animNoTable[(int)type];
-
-    if (animindex == -1)
+    if (typeIndex < 0 || typeIndex >= (int)AnimationType::Max)
+    {
         return;
+    }
 
-    if (currentAnimIndex == animindex)
+    int animIndex = animNoTable[typeIndex];
+
+    if (animIndex == -1)
+    {
         return;
+    }
+    if (currentAnimType == type)
+    {
+        return;
+    }
+
+    int useAnimSrcHandle = animSrcHandle;
+
+    // TypeごとのアニメMV1がある場合はこちらを優先
+    if (animSrcHandleTable[typeIndex] != -1)
+    {
+        useAnimSrcHandle = animSrcHandleTable[typeIndex];
+    }
+
+    if (useAnimSrcHandle == -1)
+    {
+        return;
+    }
 
     if (attachAnimIndex != -1)
     {
@@ -77,15 +103,18 @@ void AnimationManager::ChangeAnim(AnimationType type)
         attachAnimIndex = -1;
     }
 
-    attachAnimIndex = MV1AttachAnim(modelHandle, animindex, animSrcHandle, TRUE);
+    attachAnimIndex = MV1AttachAnim(modelHandle, animIndex, useAnimSrcHandle, TRUE);
 
     if (attachAnimIndex == -1)
+    {
         return;
+    }
 
-    currentAnimIndex = animindex;
+    currentAnimType = type;
+    currentAnimIndex = animIndex;
+
     animTime = 0.0f;
     animTotalTime = MV1GetAttachAnimTotalTime(modelHandle, attachAnimIndex);
-
 }
 bool AnimationManager::LoadAnimModel(const char* filePath)
 {
@@ -95,6 +124,28 @@ bool AnimationManager::LoadAnimModel(const char* filePath)
         return false;
     return true;
 }
+bool AnimationManager::LoadAnimModelForType(AnimationType type, const char* filePath, int animIndex)
+{
+    int typeIndex = (int)type;
+
+    if (typeIndex < 0 || typeIndex >= (int)AnimationType::Max)
+    {
+        return false;
+    }
+
+    int handle = MV1LoadModel(filePath);
+
+    if (handle == -1)
+    {
+        return false;
+    }
+
+    animSrcHandleTable[typeIndex] = handle;
+    animNoTable[typeIndex] = animIndex;
+
+    return true;
+}
+
 
 void AnimationManager::Release()
 {
@@ -110,7 +161,20 @@ void AnimationManager::Release()
         animSrcHandle = -1;
     }
 
+    for (int i = 0; i < (int)AnimationType::Max; i++)
+    {
+        if (animSrcHandleTable[i] != -1)
+        {
+            MV1DeleteModel(animSrcHandleTable[i]);
+            animSrcHandleTable[i] = -1;
+        }
+    }
+
+    modelHandle = -1;
+    currentAnimType = AnimationType::Max;
     currentAnimIndex = -1;
+    attachAnimIndex = -1;
+
     animTime = 0.0f;
     animTotalTime = 0.0f;
 }

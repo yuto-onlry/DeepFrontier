@@ -1,6 +1,7 @@
 #pragma once
 #include "CharacterBase.h"
 #include "AnimationManager.h"
+#include "SphereCollider.h"
 
 /// <summary>
 /// エネミー基底クラス
@@ -12,6 +13,15 @@ protected:
 	AnimationManager animationManager;
 	float moveSpeed;	//移動速度
 	float attackRange;	//攻撃範囲
+protected:
+	//攻撃判定用のコライダー
+	SphereCollider attackCollider;
+
+	bool isAttacking;
+	bool isAttackHit;
+
+	int attackTimer;
+	int attackCoolTime;
 
 public:
 	EnemyBase();
@@ -30,4 +40,13 @@ public:
 protected:
 	void GetMovePlayerPos(VECTOR playerPos);
 	bool GetAttackRange(VECTOR playerPos);
+
+public:
+	SphereCollider* GetAttackCollider();
+	void DisableAttackCollider();
+
+protected:
+	void InitAttackCollider();
+	void StartAttack();
+	void UpdateAttack(VECTOR playerPos);
 };

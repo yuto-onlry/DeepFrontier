@@ -26,7 +26,6 @@ void SphereCollider::DrawDebug() const
 {
     if (isActive == false)
         return;
-
     int color = GetColor(0, 255, 255);
     if (tag == ColliderTag::Player)
         color = GetColor(0, 255, 0);

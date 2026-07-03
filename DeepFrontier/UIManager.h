@@ -9,6 +9,9 @@ private:
     int playerHpFrameHandle;
 
     float playerDelayHpRate;
+    int previousPlayerHp;
+    int playerDelayWaitTimer;
+
 
 public:
     UIManager();

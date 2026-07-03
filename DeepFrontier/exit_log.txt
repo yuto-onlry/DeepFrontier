@@ -1,0 +1,11 @@
+Game Start
+ESC pressed
+Loop End
+Before characterManager.Release
+After characterManager.Release
+Before uiManager.Release
+After uiManager.Release
+Before ModelPreset.Release
+After ModelPreset.Release
+Before DxLib_End
+After DxLib_End

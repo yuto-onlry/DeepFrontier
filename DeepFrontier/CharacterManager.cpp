@@ -18,9 +18,9 @@ void CharacterManager::Init()
 
     // 敵の初期化＋配置
     AddLittleEnemy(VGet(300.0f, 0.0f, 300.0f));
-    //AddLittleEnemy(VGet(100.0f, 0.0f, 100.0f));
-    //AddLittleEnemy(VGet(200.0f, 0.0f, 200.0f));
-    //AddLittleEnemy(VGet(400.0f, 0.0f, 400.0f));
+    AddLittleEnemy(VGet(-100.0f, 0.0f, 100.0f));
+    AddLittleEnemy(VGet(-200.0f, 0.0f, -200.0f));
+    AddLittleEnemy(VGet(400.0f, 0.0f, -400.0f));
 }
 void CharacterManager::Update(const InputManager& inputManager)
 {
@@ -64,10 +64,16 @@ void CharacterManager::Update(const InputManager& inputManager)
 
     for (auto& enemy : enemies)
     {
-        collisionManager.AddCollider(enemy->GetCapsuleCollider());
+		// 敵が生存している場合のみコライダーを追加
+        if (enemy != nullptr && enemy->IsDead() == false)
+        {
+            collisionManager.AddCollider(enemy->GetCapsuleCollider());
+            collisionManager.AddCollider(enemy->GetAttackCollider());
+        }
     }
     collisionManager.CheckCollision();
     const auto& hits = collisionManager.GetCollisionHit();
+	// 衝突判定の処理
     for (const auto& hit : hits)
     {
         ColliderBase* a = hit.colliderA;
@@ -105,6 +111,40 @@ void CharacterManager::Update(const InputManager& inputManager)
                 break;
             }
         }
+		// 敵の攻撃判定とプレイヤーのコライダーが衝突した場合の処理
+        ColliderBase* enemyAttackCollider = nullptr;
+        ColliderBase* playerCollider = nullptr;
+
+        if (a->GetTag() == ColliderTag::EnemyAttack &&
+            b->GetTag() == ColliderTag::Player)
+        {
+            enemyAttackCollider = a;
+            playerCollider = b;
+        }
+        else if (a->GetTag() == ColliderTag::Player &&
+            b->GetTag() == ColliderTag::EnemyAttack)
+        {
+            enemyAttackCollider = b;
+            playerCollider = a;
+        }
+
+        if (enemyAttackCollider != nullptr && playerCollider != nullptr)
+        {
+            CharacterBase* enemy = enemyAttackCollider->GetOwner();
+
+            if (enemy != nullptr && player != nullptr)
+            {
+                player->Damage(enemy->GetAttack());
+
+                EnemyBase* enemyBase = dynamic_cast<EnemyBase*>(enemy);
+                if (enemyBase != nullptr)
+                {
+                    enemyBase->DisableAttackCollider();
+                }
+
+                break;
+            }
+        }
     }
 }
 void CharacterManager::Draw()
@@ -116,9 +156,13 @@ void CharacterManager::Draw()
 	// デバッグ用のコライダー描画    
     collisionManager.DrawDebug();
 }
-
+/// <summary>
+/// リソース解放
+/// </summary>
 void CharacterManager::Release()
 {
+    collisionManager.Clear();
+
     if (player != nullptr)
     {
         player->Release();
@@ -126,12 +170,16 @@ void CharacterManager::Release()
     }
     for (auto& enemy : enemies)
     {
-        enemy->Release();
+        if (enemy != nullptr)
+        {
+            enemy->Release();
+        }
     }
 
     enemies.clear();
-}
 
+    collisionManager.Clear();
+}
 VECTOR CharacterManager::GetPlayerPosition() const
 {
     if (player != nullptr)
