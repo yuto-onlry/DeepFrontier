@@ -24,13 +24,28 @@ void CharacterManager::Init()
 }
 void CharacterManager::Update(const InputManager& inputManager)
 {
+    collisionManager.Clear();
+
+    // 前フレームまでに死亡した敵を削除
+    for (auto it = enemies.begin(); it != enemies.end();)
+    {
+        if ((*it)->IsDead() == true)
+        {
+            (*it)->Release();
+            it = enemies.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
     if (player != nullptr)
     {
         player->Update(inputManager);
     }
 
     VECTOR playerPos = GetPlayerPosition();
-        
+
     for (auto& enemy : enemies)
     {
         enemy->Update(playerPos);
@@ -41,7 +56,10 @@ void CharacterManager::Update(const InputManager& inputManager)
     if (player != nullptr)
     {
         collisionManager.AddCollider(player->GetCapsuleCollider());
-        collisionManager.AddCollider(player->GetAttackCollider());
+        for (int i = 0; i < player->GetAttackColliderCount(); i++)
+        {
+            collisionManager.AddCollider(player->GetAttackCollider(i));
+        }
     }
 
     for (auto& enemy : enemies)
@@ -75,14 +93,15 @@ void CharacterManager::Update(const InputManager& inputManager)
             attackCollider = b;
             enemyCollider = a;
         }
-
+		// 攻撃判定と敵のコライダーが衝突した場合の処理
         if (attackCollider != nullptr && enemyCollider != nullptr)
         {
             CharacterBase* enemy = enemyCollider->GetOwner();
 
-            if (enemy != nullptr)
+            if (enemy != nullptr && player != nullptr)
             {
-                enemy->Damage(999);
+                enemy->Damage(player->GetAttack());
+                player->DisableAttackCollider();
                 break;
             }
         }

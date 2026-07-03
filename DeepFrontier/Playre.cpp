@@ -72,11 +72,11 @@ void Player::Update(const InputManager& inputManager)
     if (playerAction.IsAction())
     {
         playerAction.Update(position, forward);
-        if (state == PlayerState::Attack)
+        // 攻撃中、かつまだヒットしていない時だけ武器判定true
+        if (state == PlayerState::Attack && isAttackHit == false)
         {
             weapon.SetAttackColliderActive(true);
-        }
-        animationManager.Update();
+        }        animationManager.Update();
         MV1SetPosition(modelHandle, position);
         UpdateCollider();
         weapon.Update();
@@ -90,6 +90,10 @@ void Player::Update(const InputManager& inputManager)
         animationManager.ChangeAnim(AnimationType::Attack);
 
         playerAction.StartAttack(position, forward);
+        // 新しい攻撃なので、まだ当たっていない状態に戻す
+        isAttackHit = false;
+		// 攻撃開始フレームから攻撃判定をtrue
+        weapon.SetAttackColliderActive(true);
 
         animationManager.Update();
         MV1SetPosition(modelHandle, position);
@@ -109,12 +113,14 @@ void Player::Update(const InputManager& inputManager)
             position.x += moveInput.x * 80.0f;
             position.z += moveInput.z * 80.0f;
         }
-
-        playerAction.StartAvoid();
-        weapon.SetAttackColliderActive(true);
-        animationManager.Update();
+        // 回避では攻撃判定を出さない
+        weapon.SetAttackColliderActive(false);
         MV1SetPosition(modelHandle, position);
+		// 回避中のコライダー更新
         UpdateCollider();
+		// 回避中のアニメーション更新
+        animationManager.Update();
+		// 回避中の武器の更新
         weapon.Update();
 
         return;
@@ -227,13 +233,19 @@ void Player::Release()
 
     CharacterBase::Release();
 }
-// 攻撃判定のコライダーを取得
-SphereCollider* Player::GetAttackCollider()
+// 攻撃判定のコライダーの数を取得
+int Player::GetAttackColliderCount() const
 {
-    return weapon.GetAttackCollider();
+    return weapon.GetAttackColliderCount();
 }
-// 攻撃判定のコライダーを無効化
+
+// 攻撃判定のコライダーを取得
+SphereCollider* Player::GetAttackCollider(int index)
+{
+    return weapon.GetAttackCollider(index);
+}// 攻撃判定のコライダーを無効化
 void Player::DisableAttackCollider()
 {
+	isAttackHit = true;
     weapon.SetAttackColliderActive(false);
 }

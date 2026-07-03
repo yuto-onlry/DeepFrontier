@@ -5,8 +5,9 @@
 class Weapon
 {
 private:
-    int modelHandle;
-
+	// 武器モデルのハンドル
+    int WeaponModelHandle;
+	// 武器を装備しているキャラクターのモデルハンドル
     int ownerModelHandle;
     int attachFrameIndex;
 
@@ -14,9 +15,10 @@ private:
     VECTOR offsetRotation;
     VECTOR scale;
 private:
+	static const int AttackColliderCount = 5;
 	// 攻撃判定用のコライダー
-    SphereCollider attackCollider;
-	// 攻撃判定の位置調整用
+    SphereCollider attackColliders[AttackColliderCount];
+    // 攻撃判定の位置調整用
     VECTOR attackLocalOffset;
 
 public:
@@ -30,10 +32,10 @@ public:
     void Release();
 
 public:
-    void SetAttackColliderActive(bool active);
+    int GetAttackColliderCount() const;
+    SphereCollider* GetAttackCollider(int index);
 public:
-
-    SphereCollider* GetAttackCollider();
+    void SetAttackColliderActive(bool active);
 public:
     bool IsValid() const;
 };

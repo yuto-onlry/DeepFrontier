@@ -5,7 +5,6 @@
 #include "PlayerAction.h"
 #include "SphereCollider.h"
 #include "Weapon.h"
-
 #include  <dinput.h>
 
 class Player : public CharacterBase
@@ -48,6 +47,8 @@ public:
 	void Draw() override;
 	void Release() override;
 public:
-	SphereCollider* GetAttackCollider();
+	int GetAttackColliderCount() const;
+	SphereCollider* GetAttackCollider(int index);
+public:
 	void DisableAttackCollider();
 };	

@@ -33,6 +33,7 @@ public:
 	VECTOR GetPosition() const;
 	int GetHp() const;
 	int GetMaxHp() const;
+	int GetAttack() const;
 public:
 	void SetPosition(VECTOR pos);
 
