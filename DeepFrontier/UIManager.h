@@ -1,17 +1,11 @@
 #pragma once
 #include "DxLib.h"
+#include "HpGauge.h"
 
 class UIManager
 {
 private:
-    int playerHpBackHandle;
-    int playerHpFillHandle;
-    int playerHpFrameHandle;
-
-    float playerDelayHpRate;
-    int previousPlayerHp;
-    int playerDelayWaitTimer;
-
+    HpGauge playerHpGauge;
 
 public:
     UIManager();
