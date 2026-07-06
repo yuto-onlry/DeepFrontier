@@ -10,6 +10,7 @@ InputManager::~InputManager()
 }
 void InputManager::Init()
 {
+	// ジョイスティックの状態を初期化
 	std::memset(&currentInput, 0, sizeof(DINPUT_JOYSTATE));
 	std::memset(&prevInput, 0, sizeof(DINPUT_JOYSTATE));
 

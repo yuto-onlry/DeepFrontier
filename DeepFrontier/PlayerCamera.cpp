@@ -10,7 +10,7 @@ PlayerCamera::PlayerCamera()
     followSpeed(0.08f),
     angleY(0.0f),
     angleX(0.25f),
-    rotateSpeed(0.05f)
+    rotateSpeed(0.03f)
 {
 }
 
