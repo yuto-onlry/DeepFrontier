@@ -29,19 +29,17 @@ void AnimationPreset::SetAnimationPlayer(AnimationManager& animManager, int mode
 void AnimationPreset::SetAnimationLittleEnemy(AnimationManager& animManager, int modelHandle)
 {
     animManager.Init(modelHandle);
-
+	// 敵のアニメーションを読み込む
     animManager.LoadAnimModelForType(
         AnimationType::Idle,
         "../Animation/Enemy/Idle.mv1",
         0
     );
-
     animManager.LoadAnimModelForType(
         AnimationType::Run,
         "../Animation/Enemy/Ran.mv1",
         0
     );
-
     animManager.LoadAnimModelForType(
         AnimationType::Attack,
         "../Animation/Enemy/Attack.mv1",

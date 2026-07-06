@@ -24,6 +24,7 @@ void Player::Init()
 
     position = VGet(0.0f, 0.0f, 0.0f);
     velocity = VGet(0.0f, 0.0f, 0.0f);
+    forward = VGet(0.0f, 0.0f, 1.0f);
 	//モデルの読み込み
 	modelHandle = ModelPreset::LoadPlayerModel();
     if (modelHandle == -1)
@@ -44,7 +45,7 @@ void Player::Init()
     playerAction.Init(this);
     isDead = false;
 }
-void Player::Update(const InputManager& inputManager)
+void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECTOR cameraRight)
 {
     velocity = VGet(0.0f, 0.0f, 0.0f);
 
@@ -54,17 +55,61 @@ void Player::Update(const InputManager& inputManager)
     VECTOR moveInput = inputManager.GetLeftStick();
     weapon.SetAttackColliderActive(false);
 
+    // カメラ方向をXZ平面だけで使う
+    cameraForward.y = 0.0f;
+    cameraRight.y = 0.0f;
+    // カメラ前方向の正規化
+    float forwardLength = sqrtf(
+        cameraForward.x * cameraForward.x +
+        cameraForward.z * cameraForward.z
+    );
+
+    if (forwardLength > 0.0f)
+    {
+        cameraForward.x /= forwardLength;
+        cameraForward.z /= forwardLength;
+    }
+    else
+    {
+        cameraForward = VGet(0.0f, 0.0f, 1.0f);
+    }
+
+    // カメラ右方向の正規化
+    float rightLength = sqrtf(
+        cameraRight.x * cameraRight.x +
+        cameraRight.z * cameraRight.z
+    );
+
+    if (rightLength > 0.0f)
+    {
+        cameraRight.x /= rightLength;
+        cameraRight.z /= rightLength;
+    }
+    else
+    {
+        cameraRight = VGet(1.0f, 0.0f, 0.0f);
+    }
+
+    // カメラ基準の移動方向
+    VECTOR moveDir = VGet(0.0f, 0.0f, 0.0f);
+
+    moveDir.x = cameraRight.x * moveInput.x + cameraForward.x * moveInput.z;
+    moveDir.z = cameraRight.z * moveInput.x + cameraForward.z * moveInput.z;
+    moveDir.y = 0.0f;
+
     bool isMove = false;
 
-    if (moveInput.x != 0.0f || moveInput.z != 0.0f)
+    float moveLength = sqrtf(
+        moveDir.x * moveDir.x +
+        moveDir.z * moveDir.z
+    );
+
+    if (moveLength > 0.0f)
     {
+        moveDir.x /= moveLength;
+        moveDir.z /= moveLength;
         isMove = true;
-    }
-    if (CheckHitKey(KEY_INPUT_H))
-    {
-		Player::Damage(10);
-    }
-    MV1SetPosition(modelHandle, position);
+    }    MV1SetPosition(modelHandle, position);
     UpdateCollider();
 
     weapon.Update();
@@ -112,6 +157,7 @@ void Player::Update(const InputManager& inputManager)
         {
             position.x += moveInput.x * 80.0f;
             position.z += moveInput.z * 80.0f;
+			forward = moveDir;
         }
         // 回避では攻撃判定を出さない
         weapon.SetAttackColliderActive(false);
@@ -143,8 +189,8 @@ void Player::Update(const InputManager& inputManager)
         speed = dashSpeed;
     }
 
-    velocity.x = moveInput.x * speed;
-    velocity.z = moveInput.z * speed;
+    velocity.x = moveDir.x * speed;
+    velocity.z = moveDir.z * speed;
 
     position = VAdd(position, velocity);
 
@@ -192,21 +238,20 @@ void Player::Update(const InputManager& inputManager)
     // 移動しているときだけ向きを変える
     if (isMove == true)
     {
-        float angleY = atan2f(velocity.x, velocity.z);
+        forward = moveDir;
+
+        float angleY = atan2f(forward.x, forward.z);
         float modelOffset = DX_PI_F;
-        float length = sqrtf(velocity.x * velocity.x + velocity.z * velocity.z);
-        if (length > 0.0f)
-        {
-            forward.x = velocity.x / length;
-            forward.y = 0.0f;
-            forward.z = velocity.z / length;
-        }
-        MV1SetRotationXYZ(modelHandle,VGet(DX_PI_F / 2.0f, angleY + modelOffset, 0.0f));
+
+        MV1SetRotationXYZ(
+            modelHandle,
+            VGet(DX_PI_F / 2.0f, angleY + modelOffset, 0.0f)
+        );
     }
-     
     MV1SetPosition(modelHandle, position);
     UpdateCollider();
-    weapon.Update();}
+    weapon.Update();
+}
 void Player::UpdateCollider()
 {
 	//プレイヤーコライダーの位置を更新

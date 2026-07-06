@@ -1,21 +1,31 @@
 #include "HpGauge.h"
 
 HpGauge::HpGauge()
-    : delayHpRate(1.0f),
+    : backHandle(-1),
+    fillHandle(-1),
+    frameHandle(-1),
+    delayHpRate(1.0f),
     previousHp(-1),
-    delayWaitTimer(0)
+    delayWaitTimer(0),
+    delayWaitFrame(20),
+    delaySpeed(0.002f)
 {
 }
 
 HpGauge::~HpGauge()
 {
+    Release();
 }
 
-void HpGauge::Reset()
+void HpGauge::Init(
+    const char* backPath,
+    const char* fillPath,
+    const char* framePath
+)
 {
-    delayHpRate = 1.0f;
-    previousHp = -1;
-    delayWaitTimer = 0;
+    backHandle = LoadGraph(backPath);
+    fillHandle = LoadGraph(fillPath);
+    frameHandle = LoadGraph(framePath);
 }
 
 void HpGauge::Update(int hp, int maxHp)
@@ -41,9 +51,10 @@ void HpGauge::Update(int hp, int maxHp)
     // HPが減った瞬間、裏バーの待機時間をセット
     if (hp < previousHp)
     {
-        delayWaitTimer = 20;
+        delayWaitTimer = delayWaitFrame;
     }
-    
+
+    // HPが回復した場合は、裏バーもすぐ合わせる
     if (hp > previousHp)
     {
         delayHpRate = hpRate;
@@ -61,7 +72,7 @@ void HpGauge::Update(int hp, int maxHp)
         }
         else
         {
-            delayHpRate -= 0.002f;
+            delayHpRate -= delaySpeed;
 
             if (delayHpRate < hpRate)
             {
@@ -75,10 +86,19 @@ void HpGauge::Update(int hp, int maxHp)
     }
 }
 
-void HpGauge::Draw(int x, int y, int width, int height, int hp, int maxHp)
+void HpGauge::Draw(
+    int x,
+    int y,
+    int width,
+    int height,
+    int hp,
+    int maxHp
+)
 {
     if (maxHp <= 0)
         return;
+
+    Update(hp, maxHp);
 
     float hpRate = (float)hp / (float)maxHp;
 
@@ -92,14 +112,72 @@ void HpGauge::Draw(int x, int y, int width, int height, int hp, int maxHp)
     int delayHpWidth = (int)(width * delayHpRate);
 
     // 背景
-    DrawBox(x, y, x + width, y + height, (30, 30, 40), TRUE);
+    DrawBox(
+        x,
+        y,
+        x + width,
+        y + height,
+        GetColor(30, 30, 40),
+        TRUE
+    );
 
     // 裏バー
-    DrawBox(x, y, x + delayHpWidth, y + height, GetColor(255, 120, 0), TRUE);
+    if (backHandle != -1)
+    {
+        DrawExtendGraph(
+            x,
+            y,
+            x + delayHpWidth,
+            y + height,
+            backHandle,
+            TRUE
+        );
+    }
 
     // 現在HPバー
-    DrawBox(x,y,x + hpWidth,y + height,GetColor(60, 220, 80),TRUE);
+    if (fillHandle != -1)
+    {
+        DrawExtendGraph(
+            x,
+            y,
+            x + hpWidth,
+            y + height,
+            fillHandle,
+            TRUE
+        );
+    }
 
     // 枠
-    DrawBox(x, y, x + width, y + height, GetColor(255, 255, 255), TRUE);
+    if (frameHandle != -1)
+    {
+        DrawExtendGraph(
+            x,
+            y,
+            x + width,
+            y + height,
+            frameHandle,
+            TRUE
+        );
+    }
+}
+
+void HpGauge::Release()
+{
+    if (backHandle != -1)
+    {
+        DeleteGraph(backHandle);
+        backHandle = -1;
+    }
+
+    if (fillHandle != -1)
+    {
+        DeleteGraph(fillHandle);
+        fillHandle = -1;
+    }
+
+    if (frameHandle != -1)
+    {
+        DeleteGraph(frameHandle);
+        frameHandle = -1;
+    }
 }

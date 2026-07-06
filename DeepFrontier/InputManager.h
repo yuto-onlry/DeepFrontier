@@ -33,9 +33,12 @@ public:
 
     void Init();
     void Update();
-
-    VECTOR GetLeftStick() const;
-
+public:
+	//左スティックの入力値を取得
+	VECTOR GetLeftStick() const;    
+    //右スティックの入力値を取得
+    VECTOR GetRightStick() const;
+public:
     bool IsButton(PadButton button) const;
     bool IsButtonDown(PadButton button) const;
 };

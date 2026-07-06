@@ -3,6 +3,7 @@
 #include "InputManager.h"
 #include "UIManager.h"  
 #include "ModelPreset.h"
+#include "PlayerCamera.h"
 
 //デバック用
 void DrawGround()
@@ -59,13 +60,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     SetDrawScreen(DX_SCREEN_BACK);
 
     SetUseZBuffer3D(TRUE);
-    SetWriteZBuffer3D(TRUE);
-
-    SetCameraPositionAndTarget_UpVecY(
-        VGet(0.0f, 500.0f, -800.0f),
-        VGet(0.0f, 0.0f, 0.0f)
-    );
-
+    SetWriteZBuffer3D(TRUE);    
     {
         InputManager inputManager;
 
@@ -74,6 +69,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
         UIManager uiManager;
         uiManager.Init();
+
+        PlayerCamera playerCamera;
+        playerCamera.Init();
 
         while (ProcessMessage() == 0)
         {
@@ -85,8 +83,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             ClearDrawScreen();
 
             inputManager.Update();
-            characterManager.Update(inputManager);
+            VECTOR cameraForward = playerCamera.GetForward();
+            VECTOR cameraRight = playerCamera.GetRight();
 
+            characterManager.Update(inputManager, cameraForward, cameraRight);
+            if (characterManager.GetPlayer() != nullptr)
+            {
+                VECTOR rightStick = inputManager.GetRightStick();
+
+                playerCamera.Update(
+                    characterManager.GetPlayer()->GetPosition(),
+                    rightStick
+                );
+            }
             DrawGround();
             characterManager.Draw();
 
@@ -101,7 +110,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
 
             ScreenFlip();
-        }
+            }
     }
 	//モデルリソース解放
     ModelPreset::Release();

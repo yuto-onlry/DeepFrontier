@@ -10,7 +10,7 @@ private:
 public:
     UIManager();
     ~UIManager();
-public:
+
     void Init();
     void DrawPlayerHp(int hp, int maxHp);
     void Release();

@@ -22,7 +22,7 @@ void CharacterManager::Init()
     AddLittleEnemy(VGet(-200.0f, 0.0f, -200.0f));
     AddLittleEnemy(VGet(400.0f, 0.0f, -400.0f));
 }
-void CharacterManager::Update(const InputManager& inputManager)
+void CharacterManager::Update(const InputManager& inputManager,VECTOR cameraForward,VECTOR cameraRight)
 {
     collisionManager.Clear();
 
@@ -41,7 +41,7 @@ void CharacterManager::Update(const InputManager& inputManager)
     }
     if (player != nullptr)
     {
-        player->Update(inputManager);
+        player->Update(inputManager, cameraForward, cameraRight);
     }
 
     VECTOR playerPos = GetPlayerPosition();

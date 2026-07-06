@@ -42,7 +42,7 @@ public:
 	virtual ~Player();
 public:
 	void Init() override;
-	void Update(const InputManager& inputManager);
+	void Update(const InputManager& inputManager, VECTOR cameraForward, VECTOR cameraRight);	
 	void UpdateCollider();
 	void Draw() override;
 	void Release() override;

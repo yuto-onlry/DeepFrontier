@@ -20,7 +20,7 @@ void InputManager::Init()
 void InputManager::Update()
 {
     prevInput = currentInput;
-
+	// ジョイスティックの状態を取得
     if (GetJoypadDirectInputState(DX_INPUT_PAD1, &currentInput) == 0)
     {
         isConnected = true;
@@ -31,7 +31,10 @@ void InputManager::Update()
         std::memset(&currentInput, 0, sizeof(DINPUT_JOYSTATE));
     }
 }
-
+/// <summary>
+/// 左スティックの入力値を取得する
+/// </summary>
+/// <returns></returns>
 VECTOR InputManager::GetLeftStick() const
 {
     float x = currentInput.X / 1000.0f;
@@ -45,7 +48,28 @@ VECTOR InputManager::GetLeftStick() const
 
     return VGet(x, 0.0f, -y);
 }
+/// <summary>
+/// 右スティックの入力値を取得する
+/// </summary>
+/// <returns></returns>
+VECTOR InputManager::GetRightStick() const
+{
+    float x = currentInput.Rx / 1000.0f;
+    float y = currentInput.Ry / 1000.0f;
 
+    if (std::fabs(x) < deadZone)
+        x = 0.0f;
+
+    if (std::fabs(y) < deadZone)
+        y = 0.0f;
+
+    return VGet(x, 0.0f, -y);
+}   
+/// <summary>
+/// 指定したボタンが押されているかを判定する
+/// </summary>
+/// <param name="button"></param>
+/// <returns></returns>
 bool InputManager::IsButton(PadButton button) const
 {
     int buttonNo = static_cast<int>(button);
@@ -57,7 +81,11 @@ bool InputManager::IsButton(PadButton button) const
 
     return currentInput.Buttons[buttonNo] != 0;
 }
-
+/// <summary>
+/// 指定したボタンが押された瞬間かを判定する
+/// </summary>
+/// <param name="button"></param>
+/// <returns></returns>
 bool InputManager::IsButtonDown(PadButton button) const
 {
     int buttonNo = static_cast<int>(button);

@@ -157,11 +157,13 @@
     <ClCompile Include="ColliderBase.cpp" />
     <ClCompile Include="CollisionManager.cpp" />
     <ClCompile Include="EnemyBase.cpp" />
+    <ClCompile Include="HpGauge.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LittleEnemy.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ModelPreset.cpp" />
     <ClCompile Include="PlayerAction.cpp" />
+    <ClCompile Include="PlayerCamera.cpp" />
     <ClCompile Include="Playre.cpp" />
     <ClCompile Include="SphereCollider.cpp" />
     <ClCompile Include="UIManager.cpp" />
@@ -176,11 +178,13 @@
     <ClInclude Include="ColliderBase.h" />
     <ClInclude Include="CollisionManager.h" />
     <ClInclude Include="EnemyBase.h" />
+    <ClInclude Include="HpGauge.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="LittleEnemy.h" />
     <ClInclude Include="ModelPreset.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerAction.h" />
+    <ClInclude Include="PlayerCamera.h" />
     <ClInclude Include="SphereCollider.h" />
     <ClInclude Include="UIManager.h" />
     <ClInclude Include="Weapon.h" />
