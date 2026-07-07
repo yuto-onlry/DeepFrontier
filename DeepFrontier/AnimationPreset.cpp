@@ -45,6 +45,12 @@ void AnimationPreset::SetAnimationLittleEnemy(AnimationManager& animManager, int
         "../Animation/Enemy/Attack.mv1",
         0
     );
+    animManager.LoadAnimModelForType(
+        AnimationType::LateralMove,
+        "../Animation/Enemy/LateralMove.mv1",
+        0
+    );
+
 
     animManager.ChangeAnim(AnimationType::Idle);
 }

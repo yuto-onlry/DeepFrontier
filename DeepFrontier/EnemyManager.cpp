@@ -19,21 +19,56 @@ void EnemyManager::Update(VECTOR playerPos)
 {
     RemoveDeadEnemies();
 
-    int currentAttackCount = 0;
+    EnemyBase* attackEnemy = nullptr;
 
-    // すでに攻撃中の敵を数える
+    // すでに攻撃中のEnemyがいるなら、そのEnemyを攻撃担当にする
     for (auto& enemy : enemies)
     {
         if (enemy != nullptr && enemy->IsDead() == false)
         {
             if (enemy->IsAttacking() == true)
             {
-                currentAttackCount++;
+                attackEnemy = enemy.get();
+                break;
             }
         }
     }
 
-    // 敵更新
+    // 攻撃中のEnemyがいない場合、
+    // 攻撃予約クールタイムが終わっている中で一番近いEnemyを選ぶ
+    if (attackEnemy == nullptr)
+    {
+        float nearestDistanceSq = 999999999.0f;
+
+        for (auto& enemy : enemies)
+        {
+            if (enemy == nullptr || enemy->IsDead() == true)
+            {
+                continue;
+            }
+
+            if (enemy->CanAttack() == false)
+            {
+                continue;
+            }
+
+            VECTOR enemyPos = enemy->GetPosition();
+
+            float dx = enemyPos.x - playerPos.x;
+            float dz = enemyPos.z - playerPos.z;
+
+            float distanceSq = dx * dx + dz * dz;
+
+            if (distanceSq < nearestDistanceSq)
+            {
+                nearestDistanceSq = distanceSq;
+                attackEnemy = enemy.get();
+            }
+        }
+    }
+
+    // 全員クールタイム中なら、攻撃担当なし
+    // その間は全員Waitになる
     for (auto& enemy : enemies)
     {
         if (enemy == nullptr || enemy->IsDead() == true)
@@ -41,34 +76,13 @@ void EnemyManager::Update(VECTOR playerPos)
             continue;
         }
 
-        bool wasAttacking = enemy->IsAttacking();
-
-        bool canAttack = false;
-
-        // 攻撃中の敵はそのまま攻撃継続
-        if (wasAttacking == true)
-        {
-            canAttack = true;
-        }
-        // 攻撃中の敵が上限未満なら攻撃許可
-        else if (currentAttackCount < maxEnemyAttackCount)
-        {
-            canAttack = true;
-        }
+        bool canAttack = (enemy.get() == attackEnemy);
 
         enemy->Update(playerPos, canAttack);
-
-        // このUpdateで攻撃を開始した場合
-        if (wasAttacking == false && enemy->IsAttacking() == true)
-        {
-            currentAttackCount++;
-        }
     }
 
-    // 敵同士の重なり解消
     ResolveEnemyCollision();
 }
-
 void EnemyManager::Draw()
 {
     for (auto& enemy : enemies)

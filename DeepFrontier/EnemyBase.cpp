@@ -3,9 +3,19 @@
 #include <cmath>
 
 EnemyBase::EnemyBase()
+    : moveSpeed(0.0f),
+    attackRange(0.0f),
+    isAttacking(false),
+    isAttackHit(false),
+    attackTimer(0),
+    attackCoolTime(0),
+	attackReserveCoolTime(0),
+    waitMoveSign(1),
+    waitMoveTimer(0),
+    state(EnemyState::Idle)
 {
-}
-EnemyBase::~EnemyBase()
+
+}EnemyBase::~EnemyBase()
 {
     Release();
 }
@@ -21,9 +31,12 @@ void EnemyBase::Init()
 
     moveSpeed = 5.0f;
     attackRange = 80.0f;
+    attackReserveCoolTime = 0;
 
     modelHandle = -1;
     isDead = false;
+    waitMoveSign = (GetRand(1) == 0) ? -1 : 1;
+    waitMoveTimer = 60 + GetRand(60);
     state = EnemyState::Idle;
 }
 /// <summary>
@@ -158,6 +171,10 @@ void EnemyBase::Attack(VECTOR playerPos)
         isAttacking = false;
         attackCollider.SetActive(false);
         state = EnemyState::Idle;
+
+		// 攻撃後のクールタイムを設定
+        attackReserveCoolTime = 120;
+
 		// 攻撃後のクールタイムを設定
         animationManager.SetSpeed(0.5f);
         animationManager.ChangeAnim(AnimationType::Idle);
@@ -225,8 +242,12 @@ void EnemyBase::UpdateCoolTime()
     {
         attackCoolTime--;
     }
-}
 
+    if (attackReserveCoolTime > 0)
+    {
+        attackReserveCoolTime--;
+    }
+}
 void EnemyBase::DecideState(VECTOR playerPos, bool canAttack)
 {
     if (isDead == true)
@@ -235,15 +256,19 @@ void EnemyBase::DecideState(VECTOR playerPos, bool canAttack)
         return;
     }
 
+    // 攻撃権がない敵は、常に中距離待機・横移動
+    if (canAttack == false)
+    {
+        state = EnemyState::Wait;
+        return;
+    }
+
+    // 攻撃権がある敵だけ、攻撃範囲まで追尾して攻撃する
     if (IsInAttackRange(playerPos) == true)
     {
-        if (canAttack == true && attackCoolTime <= 0)
+        if (attackCoolTime <= 0)
         {
             state = EnemyState::Attack;
-        }
-        else if (canAttack == false)
-        {
-            state = EnemyState::Wait;
         }
         else
         {
@@ -255,11 +280,11 @@ void EnemyBase::DecideState(VECTOR playerPos, bool canAttack)
 
     state = EnemyState::Chase;
 }
-
 void EnemyBase::Idle()
 {
     velocity = VGet(0.0f, 0.0f, 0.0f);
-
+    waitMoveSign = 1;
+    waitMoveTimer = 0;
     animationManager.SetSpeed(0.5f);
     animationManager.ChangeAnim(AnimationType::Idle);
 }
@@ -309,8 +334,8 @@ void EnemyBase::Chase(VECTOR playerPos)
 
 void EnemyBase::Wait(VECTOR playerPos)
 {
-    const float keepDistance = 180.0f;
-    const float margin = 20.0f;
+    const float keepDistance = 450.0f;
+    const float margin = 80.0f;
 
     float dx = position.x - playerPos.x;
     float dz = position.z - playerPos.z;
@@ -326,43 +351,74 @@ void EnemyBase::Wait(VECTOR playerPos)
 
     float distance = std::sqrt(distanceSq);
 
+    // プレイヤーから敵への方向
     VECTOR dir;
     dir.x = dx / distance;
     dir.y = 0.0f;
     dir.z = dz / distance;
 
+    // プレイヤーの周りを回る横方向
+    VECTOR sideDir;
+    sideDir.x = -dir.z * (float)waitMoveSign;
+    sideDir.y = 0.0f;
+    sideDir.z = dir.x * (float)waitMoveSign;
+
+    // ときどき横移動方向を変える
+    waitMoveTimer--;
+
+    if (waitMoveTimer <= 0)
+    {
+        waitMoveTimer = 90 + GetRand(60);
+
+        if (GetRand(1) == 0)
+        {
+            waitMoveSign *= -1;
+        }
+    }
+
+    float lateralSpeed = moveSpeed * 1.0f;
+    float distanceAdjustSpeed = moveSpeed * 0.4f;
+
     velocity = VGet(0.0f, 0.0f, 0.0f);
 
-    // プレイヤーに近すぎる場合は離れる
+    // 横移動は常に入れる
+    velocity.x += sideDir.x * lateralSpeed;
+    velocity.z += sideDir.z * lateralSpeed;
+
+    // 近すぎる場合は、離れる力を足す
     if (distance < keepDistance - margin)
     {
-        velocity.x = dir.x * moveSpeed;
-        velocity.z = dir.z * moveSpeed;
-
-        position.x += velocity.x;
-        position.z += velocity.z;
-
-        animationManager.SetSpeed(0.5f);
-        animationManager.ChangeAnim(AnimationType::Run);
+        velocity.x += dir.x * distanceAdjustSpeed;
+        velocity.z += dir.z * distanceAdjustSpeed;
     }
-    // 離れすぎている場合は少し近づく
+    // 遠すぎる場合は、近づく力を足す
     else if (distance > keepDistance + margin)
     {
-        velocity.x = -dir.x * moveSpeed;
-        velocity.z = -dir.z * moveSpeed;
-
-        position.x += velocity.x;
-        position.z += velocity.z;
-
-        animationManager.SetSpeed(0.5f);
-        animationManager.ChangeAnim(AnimationType::Run);
+        velocity.x += -dir.x * distanceAdjustSpeed;
+        velocity.z += -dir.z * distanceAdjustSpeed;
     }
-    // ちょうどいい距離なら待機
-    else
+
+    // 速度が速くなりすぎないように正規化
+    float velocityLength = std::sqrt(
+        velocity.x * velocity.x +
+        velocity.z * velocity.z
+    );
+
+    if (velocityLength > 0.0f)
     {
-        animationManager.SetSpeed(0.5f);
-        animationManager.ChangeAnim(AnimationType::Idle);
+        velocity.x /= velocityLength;
+        velocity.z /= velocityLength;
+
+        velocity.x *= moveSpeed * 0.8f;
+        velocity.z *= moveSpeed * 0.8f;
     }
+
+    position.x += velocity.x;
+    position.z += velocity.z;
+
+    // 横移動アニメーション
+    animationManager.SetSpeed(0.5f);
+    animationManager.ChangeAnim(AnimationType::LateralMove);
 
     // プレイヤーの方向を見る
     if (modelHandle != -1)
@@ -375,8 +431,7 @@ void EnemyBase::Wait(VECTOR playerPos)
             VGet(0.0f, angleY + modelOffset, 0.0f)
         );
     }
-}
-/// <summary>
+}/// <summary>
 /// アニメーションとコライダーの更新
 /// </summary>
 void EnemyBase::AnimationAndCollider()
@@ -399,9 +454,6 @@ bool EnemyBase::IsInAttackRange(VECTOR playerPos)
     float distance = std::sqrt(dx * dx + dz * dz);
 
     return distance <= attackRange;
-}bool EnemyBase::IsAttacking() const
-{
-    return isAttacking;
 }
 /// <summary>
 /// 攻撃判定のコライダーを無効化
@@ -438,4 +490,22 @@ void EnemyBase::Release()
     animationManager.Release();
 	//モデルを解放
     CharacterBase::Release();   
+}
+bool EnemyBase::IsAttacking() const
+{
+    return isAttacking;
+}
+bool EnemyBase::CanAttack() const
+{
+    if (isDead == true)
+    {
+        return false;
+    }
+
+    if (isAttacking == true)
+    {
+        return true;
+    }
+
+    return attackReserveCoolTime <= 0;
 }

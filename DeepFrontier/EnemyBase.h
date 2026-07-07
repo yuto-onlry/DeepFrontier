@@ -6,12 +6,12 @@
 /// エネミーの状態
 enum class EnemyState
 {
-    Idle,
-    Chase,
-    Wait,
-    Attack,
-    Damage,
-    Dead
+	Idle,   // 待機
+	Chase,  // 追跡
+	Wait,   // プレイヤーとの距離を保つ
+	Attack, // 攻撃
+	Damage, // ダメージ
+	Dead    // 死亡
 };
 
 /// <summary>
@@ -28,13 +28,17 @@ protected:
 
     // 攻撃判定用のコライダー
     SphereCollider attackCollider;
-
+	// 攻撃中かどうかのフラグ
     bool isAttacking;
     bool isAttackHit;
-
+	// 攻撃タイマーとクールタイム
     int attackTimer;
     int attackCoolTime;
-
+	// プレイヤーとの距離を保つための待機タイマー
+    int waitMoveSign;
+    int waitMoveTimer;
+	int attackReserveCoolTime;  // 攻撃予約のクールタイム
+	// エネミーの状態
     EnemyState state;
 
 public:
@@ -77,7 +81,8 @@ protected:
     void Attack(VECTOR playerPos);
 
     void AnimationAndCollider();
-
+public:
     // 判定系
     bool IsInAttackRange(VECTOR playerPos);
+	bool CanAttack() const;
 };
