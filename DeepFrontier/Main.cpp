@@ -1,9 +1,6 @@
 #include "DxLib.h"
-#include "CharacterManager.h"
-#include "InputManager.h"
-#include "UIManager.h"  
+#include "GameManager.h"
 #include "ModelPreset.h"
-#include "PlayerCamera.h"
 
 //デバック用
 void DrawGround()
@@ -49,6 +46,7 @@ void DrawGround()
 }
 
 
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     if (DxLib_Init() == -1)
@@ -60,18 +58,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     SetDrawScreen(DX_SCREEN_BACK);
 
     SetUseZBuffer3D(TRUE);
-    SetWriteZBuffer3D(TRUE);    
+    SetWriteZBuffer3D(TRUE);
+
     {
-        InputManager inputManager;
-
-        CharacterManager characterManager;
-        characterManager.Init();
-
-        UIManager uiManager;
-        uiManager.Init();
-
-        PlayerCamera playerCamera;
-        playerCamera.Init();
+        GameManager gameManager;
+        gameManager.Init();
 
         while (ProcessMessage() == 0)
         {
@@ -82,37 +73,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
             ClearDrawScreen();
 
-            inputManager.Update();
-            VECTOR cameraForward = playerCamera.GetForward();
-            VECTOR cameraRight = playerCamera.GetRight();
-
-            characterManager.Update(inputManager, cameraForward, cameraRight);
-            if (characterManager.GetPlayer() != nullptr)
-            {
-                VECTOR rightStick = inputManager.GetRightStick();
-
-                playerCamera.Update(
-                    characterManager.GetPlayer()->GetPosition(),
-                    rightStick
-                );
-            }
-            DrawGround();
-            characterManager.Draw();
-
-            if (characterManager.GetPlayer() != nullptr)
-            {
-                Player* player = characterManager.GetPlayer();
-
-                uiManager.DrawPlayerHp(
-                    player->GetHp(),
-                    player->GetMaxHp()
-                );
-            }
+            gameManager.Update();
+            gameManager.Draw();
 
             ScreenFlip();
-            }
+        }
     }
-	//モデルリソース解放
+
+    // 共有モデルリソース解放
     ModelPreset::Release();
 
     DxLib_End();

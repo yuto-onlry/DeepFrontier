@@ -200,7 +200,6 @@ void EnemyBase::Damage(int damage)
         return;
 
     hp -= damage;
-    printfDx("Enemy Damage HP:%d\n", hp);
 
     if (hp <= 0)
     {
@@ -208,8 +207,6 @@ void EnemyBase::Damage(int damage)
         isDead = true;
         state = EnemyState::Dead;
         capsuleCollider.SetActive(false);
-
-        printfDx("Enemy Dead\n");
     }
 }
 void EnemyBase::Dead()

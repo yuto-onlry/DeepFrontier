@@ -29,13 +29,13 @@ public:
     VECTOR GetPlayerPosition() const;
     Player* GetPlayer();
     int GetEnemyCount() const;
-private:
+public:
 	// 敵同士の衝突判定
     void ResolveEnemyCollision();
     void AddLittleEnemy(VECTOR pos);
     void SpawnWave(int waveNo);
 
-private:
+public:
     bool IsAllEnemyDead() const;
 
 };
