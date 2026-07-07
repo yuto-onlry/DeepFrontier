@@ -177,6 +177,16 @@ void EnemyBase::Attack(VECTOR playerPos)
 
 		// 攻撃後のクールタイムを設定
         animationManager.SetSpeed(0.5f);
+        animationManager.SetSpeed(0.5f);
+
+        if (waitMoveSign < 0)
+        {
+            animationManager.ChangeAnim(AnimationType::MoveLeft);
+        }
+        else
+        {
+            animationManager.ChangeAnim(AnimationType::MoveRight);
+        }
         animationManager.ChangeAnim(AnimationType::Idle);
     }
 }
@@ -418,7 +428,15 @@ void EnemyBase::Wait(VECTOR playerPos)
 
     // 横移動アニメーション
     animationManager.SetSpeed(0.5f);
-    animationManager.ChangeAnim(AnimationType::LateralMove);
+	// 横移動の方向によってアニメーションを切り替える
+    if (waitMoveSign < 0)
+    {
+        animationManager.ChangeAnim(AnimationType::MoveLeft);
+    }
+    else
+    {
+        animationManager.ChangeAnim(AnimationType::MoveRight);
+    }
 
     // プレイヤーの方向を見る
     if (modelHandle != -1)
@@ -431,7 +449,8 @@ void EnemyBase::Wait(VECTOR playerPos)
             VGet(0.0f, angleY + modelOffset, 0.0f)
         );
     }
-}/// <summary>
+}
+/// <summary>
 /// アニメーションとコライダーの更新
 /// </summary>
 void EnemyBase::AnimationAndCollider()

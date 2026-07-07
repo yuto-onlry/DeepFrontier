@@ -38,6 +38,7 @@ void EnemyManager::Update(VECTOR playerPos)
     // 攻撃予約クールタイムが終わっている中で一番近いEnemyを選ぶ
     if (attackEnemy == nullptr)
     {
+		// 攻撃担当のEnemyを決める
         float nearestDistanceSq = 999999999.0f;
 
         for (auto& enemy : enemies)
@@ -159,11 +160,14 @@ void EnemyManager::AddColliders(CollisionManager& collisionManager)
         }
     }
 }
-
+/// <summary>
+/// 指定されたウェーブ番号に応じて敵を出現させる
+/// </summary>
+/// <param name="waveNo">ウェーブ番号</param>
 void EnemyManager::SpawnWave(int waveNo)
 {
     ClearEnemies();
-
+	// ウェーブ番号に応じて敵を出現させる
     if (waveNo == 1)
     {
         AddLittleEnemy(VGet(300.0f, 0.0f, 300.0f));

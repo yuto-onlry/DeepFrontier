@@ -46,8 +46,13 @@ void AnimationPreset::SetAnimationLittleEnemy(AnimationManager& animManager, int
         0
     );
     animManager.LoadAnimModelForType(
-        AnimationType::LateralMove,
-        "../Animation/Enemy/LateralMove.mv1",
+        AnimationType::MoveRight,
+        "../Animation/Enemy/MoveRight.mv1",
+        0
+    );
+    animManager.LoadAnimModelForType(
+        AnimationType::MoveLeft,
+        "../Animation/Enemy/MoveLeft.mv1",
         0
     );
 

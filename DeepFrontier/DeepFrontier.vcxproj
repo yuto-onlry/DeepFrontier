@@ -151,6 +151,7 @@
   <ItemGroup>
     <ClCompile Include="AnimationManager.cpp" />
     <ClCompile Include="AnimationPreset.cpp" />
+    <ClCompile Include="CameraManager.cpp" />
     <ClCompile Include="CapsuleCollider.cpp" />
     <ClCompile Include="CharacterBase.cpp" />
     <ClCompile Include="CharacterManager.cpp" />
@@ -175,6 +176,7 @@
   <ItemGroup>
     <ClInclude Include="AnimationManager.h" />
     <ClInclude Include="AnimationPreset.h" />
+    <ClInclude Include="CameraManager.h" />
     <ClInclude Include="CapsuleCollider.h" />
     <ClInclude Include="CharacterBase.h" />
     <ClInclude Include="CharacterManager.h" />

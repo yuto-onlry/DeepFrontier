@@ -9,7 +9,8 @@ enum class AnimationType
 	Idle,       // 待機
 	Walk,       // 歩行
     Run,        // 走行
-	LateralMove,  // 横移動
+    MoveLeft,  // 左移動
+    MoveRight, // 右移動
     Attack,     // 攻撃
 	StrongAttack, // 強攻撃
 	AttackLockOn,  // 攻撃ロックオン
