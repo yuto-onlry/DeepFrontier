@@ -9,9 +9,10 @@ class EnemyManager
 {
 private:
     std::vector<std::unique_ptr<EnemyBase>> enemies;
-
+	// 最大同時攻撃可能数
     int maxEnemyAttackCount;
-
+    // 攻撃担当のEnemy
+    std::vector<EnemyBase*> attackEnemies;
 public:
     EnemyManager();
     ~EnemyManager();
@@ -34,4 +35,8 @@ public:
 
 private:
     void ResolveEnemyCollision();
+	EnemyBase* SelectAttackEnemy(VECTOR playerPos);
+	bool ExistsEnemy(EnemyBase* enemy) const;
+    bool IsAttackEnemy(EnemyBase* enemy) const;
+    void CleanupAttackEnemies();
 };

@@ -2,7 +2,7 @@
 #include "LittleEnemy.h"
 
 EnemyManager::EnemyManager()
-    : maxEnemyAttackCount(1)
+    : maxEnemyAttackCount(2)
 {
 }
 
@@ -13,63 +13,40 @@ EnemyManager::~EnemyManager()
 
 void EnemyManager::Init()
 {
+    enemies.clear();
+    attackEnemies.clear();
 }
 
 void EnemyManager::Update(VECTOR playerPos)
 {
+    // 攻撃担当が死んでいたら、RemoveDeadEnemies前に外す
+    for (auto& enemy : attackEnemies)
+    {
+        if (enemy != nullptr && enemy->IsDead() == true)
+        {
+            enemy = nullptr;
+        }
+    }
+
     RemoveDeadEnemies();
 
-    EnemyBase* attackEnemy = nullptr;
+    // 無効な攻撃担当を整理
+    CleanupAttackEnemies();
 
-    // すでに攻撃中のEnemyがいるなら、そのEnemyを攻撃担当にする
-    for (auto& enemy : enemies)
+    // 攻撃担当が最大数に足りなければ追加
+    while ((int)attackEnemies.size() < maxEnemyAttackCount)
     {
-        if (enemy != nullptr && enemy->IsDead() == false)
+        EnemyBase* selectedEnemy = SelectAttackEnemy(playerPos);
+
+        if (selectedEnemy == nullptr)
         {
-            if (enemy->IsAttacking() == true)
-            {
-                attackEnemy = enemy.get();
-                break;
-            }
+            break;
         }
+
+        attackEnemies.push_back(selectedEnemy);
     }
 
-    // 攻撃中のEnemyがいない場合、
-    // 攻撃予約クールタイムが終わっている中で一番近いEnemyを選ぶ
-    if (attackEnemy == nullptr)
-    {
-		// 攻撃担当のEnemyを決める
-        float nearestDistanceSq = 999999999.0f;
-
-        for (auto& enemy : enemies)
-        {
-            if (enemy == nullptr || enemy->IsDead() == true)
-            {
-                continue;
-            }
-
-            if (enemy->CanAttack() == false)
-            {
-                continue;
-            }
-
-            VECTOR enemyPos = enemy->GetPosition();
-
-            float dx = enemyPos.x - playerPos.x;
-            float dz = enemyPos.z - playerPos.z;
-
-            float distanceSq = dx * dx + dz * dz;
-
-            if (distanceSq < nearestDistanceSq)
-            {
-                nearestDistanceSq = distanceSq;
-                attackEnemy = enemy.get();
-            }
-        }
-    }
-
-    // 全員クールタイム中なら、攻撃担当なし
-    // その間は全員Waitになる
+    // Enemy更新
     for (auto& enemy : enemies)
     {
         if (enemy == nullptr || enemy->IsDead() == true)
@@ -77,12 +54,120 @@ void EnemyManager::Update(VECTOR playerPos)
             continue;
         }
 
-        bool canAttack = (enemy.get() == attackEnemy);
+        bool canAttack = IsAttackEnemy(enemy.get());
 
         enemy->Update(playerPos, canAttack);
     }
 
     ResolveEnemyCollision();
+}
+EnemyBase* EnemyManager::SelectAttackEnemy(VECTOR playerPos)
+{
+    EnemyBase* bestEnemy = nullptr;
+    float bestScore = 999999999.0f;
+
+    const float idealAttackStartDistance = 350.0f;
+
+    for (auto& enemy : enemies)
+    {
+        if (enemy == nullptr || enemy->IsDead() == true)
+        {
+            continue;
+        }
+
+        // 攻撃後クールタイム中のEnemyは選ばない
+        if (enemy->CanAttack() == false)
+        {
+            continue;
+        }
+
+        VECTOR enemyPos = enemy->GetPosition();
+
+        float dx = enemyPos.x - playerPos.x;
+        float dz = enemyPos.z - playerPos.z;
+
+        float distance = sqrtf(dx * dx + dz * dz);
+
+        // 理想距離に近いEnemyほど選ばれやすい
+        float score = fabsf(distance - idealAttackStartDistance);
+
+        // ランダムを少し入れて毎回同じにならないようにする
+        score += (float)GetRand(100);
+
+        // 遠すぎるEnemyは少し不利
+        if (distance > 700.0f)
+        {
+            score += 300.0f;
+        }
+
+        // 近すぎるEnemyは少し不利
+        if (distance < 150.0f)
+        {
+            score += 150.0f;
+        }
+
+        if (score < bestScore)
+        {
+            bestScore = score;
+            bestEnemy = enemy.get();
+        }
+    }
+
+    return bestEnemy;
+}
+void EnemyManager::CleanupAttackEnemies()
+{
+    for (auto it = attackEnemies.begin(); it != attackEnemies.end();)
+    {
+        EnemyBase* enemy = *it;
+
+        bool remove = false;
+
+        if (enemy == nullptr)
+        {
+            remove = true;
+        }
+        else if (ExistsEnemy(enemy) == false)
+        {
+            remove = true;
+        }
+        else if (enemy->IsDead() == true)
+        {
+            remove = true;
+        }
+        else if (enemy->IsAttacking() == false && enemy->CanAttack() == false)
+        {
+            // 攻撃後の予約クールタイム中なら担当から外す
+            remove = true;
+        }
+
+        if (remove == true)
+        {
+            it = attackEnemies.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+}
+
+bool EnemyManager::ExistsEnemy(EnemyBase* enemy) const
+{
+    if (enemy == nullptr)
+    {
+        return false;
+	}
+
+    for (const auto& e : enemies)
+    {
+        if (e.get() == enemy)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 void EnemyManager::Draw()
 {
@@ -121,6 +206,7 @@ void EnemyManager::ClearEnemies()
     }
 
     enemies.clear();
+    attackEnemies.clear();
 }
 
 void EnemyManager::RemoveDeadEnemies()
@@ -159,6 +245,23 @@ void EnemyManager::AddColliders(CollisionManager& collisionManager)
             collisionManager.AddCollider(enemy->GetAttackCollider());
         }
     }
+}
+bool EnemyManager::IsAttackEnemy(EnemyBase* enemy) const
+{
+    if (enemy == nullptr)
+    {
+        return false;
+    }
+
+    for (EnemyBase* attackEnemy : attackEnemies)
+    {
+        if (attackEnemy == enemy)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 /// <summary>
 /// 指定されたウェーブ番号に応じて敵を出現させる

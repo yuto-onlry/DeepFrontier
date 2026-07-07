@@ -338,7 +338,7 @@ void EnemyBase::Chase(VECTOR playerPos)
         );
     }
 
-    animationManager.SetSpeed(0.5f);
+    animationManager.SetSpeed(1.2f);
     animationManager.ChangeAnim(AnimationType::Run);
 }
 
