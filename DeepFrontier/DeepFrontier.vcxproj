@@ -157,6 +157,7 @@
     <ClCompile Include="ColliderBase.cpp" />
     <ClCompile Include="CollisionManager.cpp" />
     <ClCompile Include="EnemyBase.cpp" />
+    <ClCompile Include="EnemyManager.cpp" />
     <ClCompile Include="HpGauge.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LittleEnemy.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="ColliderBase.h" />
     <ClInclude Include="CollisionManager.h" />
     <ClInclude Include="EnemyBase.h" />
+    <ClInclude Include="EnemyManager.h" />
     <ClInclude Include="HpGauge.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="LittleEnemy.h" />

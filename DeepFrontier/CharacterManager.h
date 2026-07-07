@@ -4,6 +4,7 @@
 #include "EnemyBase.h"
 #include "InputManager.h"
 #include "CollisionManager.h"
+#include "EnemyManager.h"
 #include <vector>
 #include <memory>
 
@@ -12,7 +13,8 @@ class CharacterManager
 private:
 	// プレイヤーと敵の管理クラス
     std::unique_ptr<Player> player;
-    std::vector<std::unique_ptr<EnemyBase>> enemies;
+
+	EnemyManager enemyManager;  
     CollisionManager collisionManager;
 
 public:
@@ -26,9 +28,14 @@ public:
 
     VECTOR GetPlayerPosition() const;
     Player* GetPlayer();
+    int GetEnemyCount() const;
 private:
 	// 敵同士の衝突判定
     void ResolveEnemyCollision();
-
     void AddLittleEnemy(VECTOR pos);
+    void SpawnWave(int waveNo);
+
+private:
+    bool IsAllEnemyDead() const;
+
 };

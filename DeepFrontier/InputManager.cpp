@@ -91,7 +91,7 @@ bool InputManager::IsButtonDown(PadButton button) const
 {
     int buttonNo = static_cast<int>(button);
 
-    if (buttonNo < 0 || buttonNo >= 32)
+    if (buttonNo < 0 || buttonNo >= 32) 
     {
         return false;
     }

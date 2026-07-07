@@ -24,6 +24,7 @@ void EnemyBase::Init()
 
     modelHandle = -1;
     isDead = false;
+    state = EnemyState::Idle;
 }
 /// <summary>
 /// 攻撃判定の初期化
@@ -42,68 +43,53 @@ void EnemyBase::InitAttackCollider()
     attackCollider.SetRadius(55.0f);
     attackCollider.SetActive(false);
 }
-void EnemyBase::Update(VECTOR playerPos)
+void EnemyBase::Update(VECTOR playerPos, bool canAttack)
 {
     if (isDead == true)
     {
-        capsuleCollider.SetActive(false);
-        attackCollider.SetActive(false);
+        state = EnemyState::Dead;
+        Dead();
         return;
     }
 
-    // クールタイム更新
-    if (attackCoolTime > 0)
+    UpdateCoolTime();
+
+    if (state == EnemyState::Attack)
     {
-        attackCoolTime--;
-    }
-
-    // 攻撃中
-    if (isAttacking == true)
-    {
-        UpdateAttack(playerPos);
-
-        animationManager.Update();
-        MV1SetPosition(modelHandle, position);
-        UpdateCollider();
-
+        Attack(playerPos);
+        AnimationAndCollider();
         return;
     }
 
-    // 攻撃範囲内
-    if (GetAttackRange(playerPos) == true)
+    DecideState(playerPos, canAttack);
+
+    switch (state)
     {
-        velocity = VGet(0.0f, 0.0f, 0.0f);
+    case EnemyState::Idle:
+        Idle();
+        break;
 
-        if (attackCoolTime <= 0)
-        {
-            StartAttack();
+    case EnemyState::Chase:
+        Chase(playerPos);
+        break;
 
-            animationManager.Update();
-            MV1SetPosition(modelHandle, position);
-            UpdateCollider();
+    case EnemyState::Wait:
+        Wait(playerPos);
+        break;
 
-            return;
-        }
+    case EnemyState::Attack:
+        StartAttack();
+        break;
 
-        animationManager.SetSpeed(0.5f);
-        animationManager.ChangeAnim(AnimationType::Idle);
-        animationManager.Update();
+    case EnemyState::Dead:
+        Dead();
+        break;
 
-        MV1SetPosition(modelHandle, position);
-        UpdateCollider();
-
-        return;
+    default:
+        break;
     }
 
-    // 攻撃範囲外だけ移動
-    GetMovePlayerPos(playerPos);
-
-    animationManager.SetSpeed(0.5f);
-    animationManager.ChangeAnim(AnimationType::Run);
-    animationManager.Update();
-
-    MV1SetPosition(modelHandle, position);
-    UpdateCollider();
+    AnimationAndCollider();
 }
 /// <summary>
 /// 攻撃判定の更新
@@ -122,7 +108,7 @@ void EnemyBase::UpdateCollider()
 /// 攻撃中の更新
 /// </summary>
 /// <param name="playerPos"></param>
-void EnemyBase::UpdateAttack(VECTOR playerPos)
+void EnemyBase::Attack(VECTOR playerPos)
 {
 	// 攻撃アニメーションのフレーム数
     const int attackDuration = 30;
@@ -171,6 +157,7 @@ void EnemyBase::UpdateAttack(VECTOR playerPos)
     {
         isAttacking = false;
         attackCollider.SetActive(false);
+        state = EnemyState::Idle;
 		// 攻撃後のクールタイムを設定
         animationManager.SetSpeed(0.5f);
         animationManager.ChangeAnim(AnimationType::Idle);
@@ -181,6 +168,7 @@ void EnemyBase::UpdateAttack(VECTOR playerPos)
 /// </summary>
 void EnemyBase::StartAttack()
 {
+    state = EnemyState::Attack;
     isAttacking = true;
     isAttackHit = false;
 	// 攻撃タイマーとクールタイムをリセット
@@ -203,41 +191,6 @@ SphereCollider* EnemyBase::GetAttackCollider()
     return &attackCollider;
 }
 /// <summary>
-/// プレイヤーの方向に移動する
-/// </summary>
-/// <param name="playerPos">プレイヤーの位置</param>
-void EnemyBase::GetMovePlayerPos(VECTOR playerPos)
-{
-    VECTOR direction;
-
-    direction.x = playerPos.x - position.x;
-    direction.y = 0.0f;
-    direction.z = playerPos.z - position.z;
-
-    float length = std::sqrt(direction.x * direction.x + direction.z * direction.z);
-
-    if (length <= 0.0f)
-        return;
-    direction.x /= length;
-    direction.z /= length;
-
-    velocity.x = direction.x * moveSpeed;
-    velocity.y = 0.0f;
-    velocity.z = direction.z * moveSpeed;
-
-    position = VAdd(position, velocity);
-
-    if (modelHandle != -1)
-    {
-        float angleY = atan2f(velocity.x, velocity.z);
-
-		//モデルの向きをプレイヤーの方向に合わせる
-        float modelOffset = DX_PI_F;
-
-        MV1SetRotationXYZ(modelHandle,VGet(0.0f, angleY + modelOffset, 0.0f));
-    }
-}
-/// <summary>
 /// ダメージ処理
 /// </summary>
 /// <param name="damage"></param>
@@ -253,32 +206,205 @@ void EnemyBase::Damage(int damage)
     {
         hp = 0;
         isDead = true;
+        state = EnemyState::Dead;
         capsuleCollider.SetActive(false);
 
         printfDx("Enemy Dead\n");
     }
 }
-/// <summary>
-/// 死亡判定
-/// </summary>
-bool EnemyBase::IsDead() const
+void EnemyBase::Dead()
 {
-    return isDead;
+    velocity = VGet(0.0f, 0.0f, 0.0f);
+
+    capsuleCollider.SetActive(false);
+    attackCollider.SetActive(false);
+
+    isAttacking = false;
+}
+
+void EnemyBase::UpdateCoolTime()
+{
+    if (attackCoolTime > 0)
+    {
+        attackCoolTime--;
+    }
+}
+
+void EnemyBase::DecideState(VECTOR playerPos, bool canAttack)
+{
+    if (isDead == true)
+    {
+        state = EnemyState::Dead;
+        return;
+    }
+
+    if (IsInAttackRange(playerPos) == true)
+    {
+        if (canAttack == true && attackCoolTime <= 0)
+        {
+            state = EnemyState::Attack;
+        }
+        else if (canAttack == false)
+        {
+            state = EnemyState::Wait;
+        }
+        else
+        {
+            state = EnemyState::Idle;
+        }
+
+        return;
+    }
+
+    state = EnemyState::Chase;
+}
+
+void EnemyBase::Idle()
+{
+    velocity = VGet(0.0f, 0.0f, 0.0f);
+
+    animationManager.SetSpeed(0.5f);
+    animationManager.ChangeAnim(AnimationType::Idle);
+}
+
+void EnemyBase::Chase(VECTOR playerPos)
+{
+    VECTOR direction;
+
+    direction.x = playerPos.x - position.x;
+    direction.y = 0.0f;
+    direction.z = playerPos.z - position.z;
+
+    float length = std::sqrt(
+        direction.x * direction.x +
+        direction.z * direction.z
+    );
+
+    if (length <= 0.0f)
+    {
+        velocity = VGet(0.0f, 0.0f, 0.0f);
+        return;
+    }
+
+    direction.x /= length;
+    direction.z /= length;
+
+    velocity.x = direction.x * moveSpeed;
+    velocity.y = 0.0f;
+    velocity.z = direction.z * moveSpeed;
+
+    position = VAdd(position, velocity);
+
+    if (modelHandle != -1)
+    {
+        float angleY = atan2f(velocity.x, velocity.z);
+        float modelOffset = DX_PI_F;
+
+        MV1SetRotationXYZ(
+            modelHandle,
+            VGet(0.0f, angleY + modelOffset, 0.0f)
+        );
+    }
+
+    animationManager.SetSpeed(0.5f);
+    animationManager.ChangeAnim(AnimationType::Run);
+}
+
+void EnemyBase::Wait(VECTOR playerPos)
+{
+    const float keepDistance = 180.0f;
+    const float margin = 20.0f;
+
+    float dx = position.x - playerPos.x;
+    float dz = position.z - playerPos.z;
+
+    float distanceSq = dx * dx + dz * dz;
+
+    if (distanceSq <= 0.0001f)
+    {
+        dx = 1.0f;
+        dz = 0.0f;
+        distanceSq = 1.0f;
+    }
+
+    float distance = std::sqrt(distanceSq);
+
+    VECTOR dir;
+    dir.x = dx / distance;
+    dir.y = 0.0f;
+    dir.z = dz / distance;
+
+    velocity = VGet(0.0f, 0.0f, 0.0f);
+
+    // プレイヤーに近すぎる場合は離れる
+    if (distance < keepDistance - margin)
+    {
+        velocity.x = dir.x * moveSpeed;
+        velocity.z = dir.z * moveSpeed;
+
+        position.x += velocity.x;
+        position.z += velocity.z;
+
+        animationManager.SetSpeed(0.5f);
+        animationManager.ChangeAnim(AnimationType::Run);
+    }
+    // 離れすぎている場合は少し近づく
+    else if (distance > keepDistance + margin)
+    {
+        velocity.x = -dir.x * moveSpeed;
+        velocity.z = -dir.z * moveSpeed;
+
+        position.x += velocity.x;
+        position.z += velocity.z;
+
+        animationManager.SetSpeed(0.5f);
+        animationManager.ChangeAnim(AnimationType::Run);
+    }
+    // ちょうどいい距離なら待機
+    else
+    {
+        animationManager.SetSpeed(0.5f);
+        animationManager.ChangeAnim(AnimationType::Idle);
+    }
+
+    // プレイヤーの方向を見る
+    if (modelHandle != -1)
+    {
+        float angleY = atan2f(-dir.x, -dir.z);
+        float modelOffset = DX_PI_F;
+
+        MV1SetRotationXYZ(
+            modelHandle,
+            VGet(0.0f, angleY + modelOffset, 0.0f)
+        );
+    }
 }
 /// <summary>
-/// 攻撃範囲内か判定
+/// アニメーションとコライダーの更新
 /// </summary>
-bool EnemyBase::GetAttackRange(VECTOR playerPos)
+void EnemyBase::AnimationAndCollider()
+{
+    animationManager.Update();
+
+    if (modelHandle != -1)
+    {
+        MV1SetPosition(modelHandle, position);
+    }
+
+    UpdateCollider();
+}
+
+bool EnemyBase::IsInAttackRange(VECTOR playerPos)
 {
     float dx = playerPos.x - position.x;
     float dz = playerPos.z - position.z;
 
     float distance = std::sqrt(dx * dx + dz * dz);
 
-    if (distance <= attackRange)
-        return true;
-
-    return false;
+    return distance <= attackRange;
+}bool EnemyBase::IsAttacking() const
+{
+    return isAttacking;
 }
 /// <summary>
 /// 攻撃判定のコライダーを無効化
