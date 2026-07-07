@@ -50,7 +50,7 @@ void CharacterManager::Update(const InputManager& inputManager,VECTOR cameraForw
     {
         enemy->Update(playerPos);
     }
-
+    ResolveEnemyCollision();
     collisionManager.Clear();
 
     if (player != nullptr)
@@ -194,8 +194,88 @@ Player* CharacterManager::GetPlayer()
 {
     return player.get();
 }
+/// <summary>
+/// 
+/// </summary>
+void CharacterManager::ResolveEnemyCollision()
+{
+    const int resolveCount = 2;
 
-// 敵の生成関数(弱)
+    for (int count = 0; count < resolveCount; count++)
+    {
+        for (int i = 0; i < (int)enemies.size(); i++)
+        {
+            if (enemies[i] == nullptr || enemies[i]->IsDead())
+            {
+                continue;
+            }
+
+            CapsuleCollider* colA = enemies[i]->GetCapsuleCollider();
+            if (colA == nullptr)
+            {
+                continue;
+            }
+
+            for (int j = i + 1; j < (int)enemies.size(); j++)
+            {
+                if (enemies[j] == nullptr || enemies[j]->IsDead())
+                {
+                    continue;
+                }
+
+                CapsuleCollider* colB = enemies[j]->GetCapsuleCollider();
+                if (colB == nullptr)
+                {
+                    continue;
+                }
+
+                VECTOR posA = enemies[i]->GetPosition();
+                VECTOR posB = enemies[j]->GetPosition();
+
+                float radiusA = colA->GetRadius();
+                float radiusB = colB->GetRadius();
+
+                float dx = posB.x - posA.x;
+                float dz = posB.z - posA.z;
+
+                float distanceSq = dx * dx + dz * dz;
+                float minDistance = radiusA + radiusB + 10.0f;
+
+                if (distanceSq <= 0.0001f)
+                {
+                    dx = 1.0f;
+                    dz = 0.0f;
+                    distanceSq = 1.0f;
+                }
+
+                float distance = sqrtf(distanceSq);
+
+                if (distance < minDistance)
+                {
+                    float overlap = minDistance - distance;
+
+                    float nx = dx / distance;
+                    float nz = dz / distance;
+
+                    float push = overlap * 0.5f;
+
+                    posA.x -= nx * push;
+                    posA.z -= nz * push;
+
+                    posB.x += nx * push;
+                    posB.z += nz * push;
+
+                    enemies[i]->SetPosition(posA);
+                    enemies[j]->SetPosition(posB);
+
+                    enemies[i]->UpdateCollider();
+                    enemies[j]->UpdateCollider();
+                }
+            }
+        }
+    }
+}
+// 敵の生成関数
 void CharacterManager::AddLittleEnemy(VECTOR pos)
 {
     std::unique_ptr<EnemyBase> enemy = std::make_unique<LittleEnemy>();

@@ -26,6 +26,9 @@ public:
 
     VECTOR GetPlayerPosition() const;
     Player* GetPlayer();
+private:
+	// 敵同士の衝突判定
+    void ResolveEnemyCollision();
 
     void AddLittleEnemy(VECTOR pos);
 };

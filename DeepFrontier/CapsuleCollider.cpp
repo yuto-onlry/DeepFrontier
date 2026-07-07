@@ -40,6 +40,11 @@ VECTOR CapsuleCollider::GetTopCenter() const
     return VGet(position.x, position.y + (height * 0.5f - radius), position.z);
 }
 
+VECTOR CapsuleCollider::GetPosition() const
+{
+    return position;
+}
+
 
 VECTOR CapsuleCollider::GetBottomCenter() const
 {

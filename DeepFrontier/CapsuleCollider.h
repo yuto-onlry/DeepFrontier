@@ -15,6 +15,7 @@ public:
 public:
     float GetHeight() const;
     float GetRadius() const;
+    VECTOR GetPosition() const;
 public:
     void SetHeight(float h);
     void SetRadius(float r);
