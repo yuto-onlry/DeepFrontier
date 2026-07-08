@@ -293,8 +293,7 @@ void EnemyBase::DecideState(VECTOR playerPos, bool canAttack)
 void EnemyBase::Idle()
 {
     velocity = VGet(0.0f, 0.0f, 0.0f);
-    waitMoveSign = 1;
-    waitMoveTimer = 0;
+
     animationManager.SetSpeed(0.5f);
     animationManager.ChangeAnim(AnimationType::Idle);
 }

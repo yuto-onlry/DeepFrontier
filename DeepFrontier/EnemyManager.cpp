@@ -1,5 +1,6 @@
 #include "EnemyManager.h"
 #include "LittleEnemy.h"
+#include <cmath>
 
 EnemyManager::EnemyManager()
     : maxEnemyAttackCount(2)
@@ -74,7 +75,10 @@ EnemyBase* EnemyManager::SelectAttackEnemy(VECTOR playerPos)
         {
             continue;
         }
-
+		// すでに攻撃担当のEnemyは選ばない
+        if (IsAttackEnemy(enemy.get()) == true) {
+			continue;
+        }
         // 攻撃後クールタイム中のEnemyは選ばない
         if (enemy->CanAttack() == false)
         {
@@ -208,7 +212,9 @@ void EnemyManager::ClearEnemies()
     enemies.clear();
     attackEnemies.clear();
 }
-
+/// <summary>
+/// 死亡した敵を削除する
+/// </summary>
 void EnemyManager::RemoveDeadEnemies()
 {
     for (auto it = enemies.begin(); it != enemies.end();)
@@ -224,17 +230,18 @@ void EnemyManager::RemoveDeadEnemies()
         }
     }
 }
-
-bool EnemyManager::IsAllEnemyDead() const
-{
-    return enemies.empty();
-}
-
+/// <summary>
+/// 敵の数を取得する
+/// </summary>
+/// <returns>敵の数</returns>
 int EnemyManager::GetEnemyCount() const
 {
     return (int)enemies.size();
 }
-
+/// <summary>
+/// 敵のコライダーをCollisionManagerに追加する
+/// </summary>
+/// <param name="collisionManager"></param>
 void EnemyManager::AddColliders(CollisionManager& collisionManager)
 {
     for (auto& enemy : enemies)
@@ -246,6 +253,39 @@ void EnemyManager::AddColliders(CollisionManager& collisionManager)
         }
     }
 }
+
+/// <summary>
+/// 最大同時攻撃可能数を設定する
+/// </summary>
+/// <param name="count"></param>
+void EnemyManager::SetMaxEnemyAttackCount(int count)
+{
+    if (count < 1)
+        count = 1;
+
+    maxEnemyAttackCount = count;
+
+	// 攻撃担当のEnemyが最大数を超えていたら整理する
+    while ((int)attackEnemies.size() > maxEnemyAttackCount)
+    {
+        attackEnemies.pop_back();
+    }
+}
+
+/// <summary>
+/// すべての敵が死亡しているかどうかを判定する
+/// </summary>
+/// <returns></returns>
+bool EnemyManager::IsAllEnemyDead() const
+{
+    return enemies.empty();
+}
+
+/// <summary>
+/// 指定されたEnemyが攻撃担当かどうかを判定する
+/// </summary>
+/// <param name="enemy">判定するEnemy</param>
+/// <returns>攻撃担当であればtrue、それ以外はfalse</returns>
 bool EnemyManager::IsAttackEnemy(EnemyBase* enemy) const
 {
     if (enemy == nullptr)
@@ -273,17 +313,21 @@ void EnemyManager::SpawnWave(int waveNo)
 	// ウェーブ番号に応じて敵を出現させる
     if (waveNo == 1)
     {
+		//エネミーの最大同時攻撃可能数
+        SetMaxEnemyAttackCount(1);
         AddLittleEnemy(VGet(300.0f, 0.0f, 300.0f));
         AddLittleEnemy(VGet(-300.0f, 0.0f, 300.0f));
     }
     else if (waveNo == 2)
     {
+        SetMaxEnemyAttackCount(2);
         AddLittleEnemy(VGet(300.0f, 0.0f, 300.0f));
         AddLittleEnemy(VGet(-300.0f, 0.0f, 300.0f));
         AddLittleEnemy(VGet(0.0f, 0.0f, -400.0f));
     }
     else if (waveNo == 3)
     {
+        SetMaxEnemyAttackCount(3);
         AddLittleEnemy(VGet(300.0f, 0.0f, 300.0f));
         AddLittleEnemy(VGet(-300.0f, 0.0f, 300.0f));
         AddLittleEnemy(VGet(300.0f, 0.0f, -300.0f));
@@ -291,10 +335,13 @@ void EnemyManager::SpawnWave(int waveNo)
     }
 }
 
+/// <summary>
+/// 敵同士の衝突を解決する
+/// </summary>
 void EnemyManager::ResolveEnemyCollision()
 {
     const int resolveCount = 2;
-
+	// resolveCount回繰り返して衝突を解決する
     for (int count = 0; count < resolveCount; count++)
     {
         for (int i = 0; i < (int)enemies.size(); i++)

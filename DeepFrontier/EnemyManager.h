@@ -16,7 +16,7 @@ private:
 public:
     EnemyManager();
     ~EnemyManager();
-
+public:
     void Init();
     void Update(VECTOR playerPos);
     void Draw();
@@ -26,12 +26,13 @@ public:
     void ClearEnemies();
     void RemoveDeadEnemies();
 
-    bool IsAllEnemyDead() const;
-    int GetEnemyCount() const;
-
     void AddColliders(CollisionManager& collisionManager);
-
+    bool IsAllEnemyDead() const;
     void SpawnWave(int waveNo);
+public:
+    int GetEnemyCount() const;
+public:
+    void SetMaxEnemyAttackCount(int count);
 
 private:
     void ResolveEnemyCollision();
