@@ -42,10 +42,12 @@ public:
 	virtual ~Player();
 public:
 	void Init() override;
-	void Update(const InputManager& inputManager, VECTOR cameraForward, VECTOR cameraRight);	
+	void Update(const InputManager& inputManager, VECTOR cameraForward, VECTOR cameraRight, bool isLockOn, VECTOR lockOnTargetPos); 
 	void UpdateCollider();
 	void Draw() override;
 	void Release() override;
+private:
+	void LookAtTarget(VECTOR targetPos);
 public:
 	int GetAttackColliderCount() const;
 	SphereCollider* GetAttackCollider(int index);

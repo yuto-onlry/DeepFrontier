@@ -55,6 +55,9 @@ void LockOnManager::Update(
     }
 }
 
+/// <summary>
+/// ロックオンのデバック表示
+/// </summary>
 void LockOnManager::Draw()
 {
     if (isLockOn == false || targetEnemy == nullptr)
@@ -86,22 +89,36 @@ void LockOnManager::Draw()
     );
 }
 
+/// <summary>
+/// ロックオンを解除する
+/// </summary>
 void LockOnManager::Clear()
 {
     targetEnemy = nullptr;
     isLockOn = false;
 }
-
+/// <summary>
+/// ロックオン状態かどうかを取得する
+/// </summary>
+/// <returns></returns>
 bool LockOnManager::IsLockOn() const
 {
     return isLockOn;
 }
 
+/// <summary>
+/// ロックオン対象の敵を取得する
+/// </summary>
+/// <returns></returns>
 EnemyBase* LockOnManager::GetTargetEnemy() const
 {
     return targetEnemy;
 }
 
+/// <summary>
+/// ロックオン対象の敵の座標を取得する
+/// </summary>
+/// <returns></returns>
 VECTOR LockOnManager::GetTargetPosition() const
 {
     if (targetEnemy == nullptr)

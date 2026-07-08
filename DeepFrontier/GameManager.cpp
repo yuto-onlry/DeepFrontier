@@ -125,7 +125,6 @@ void GameManager::Release()
 
 void GameManager::DrawGround()
 {
-    // 床
     DrawCube3D(
         VGet(-2000.0f, -40.0f, -2000.0f),
         VGet(2000.0f, -35.0f, 2000.0f),
@@ -134,7 +133,6 @@ void GameManager::DrawGround()
         TRUE
     );
 
-    // グリッド線
     for (int i = -2000; i <= 2000; i += 100)
     {
         DrawLine3D(
@@ -150,14 +148,12 @@ void GameManager::DrawGround()
         );
     }
 
-    // 中央のX軸
     DrawLine3D(
         VGet(-2000.0f, -33.0f, 0.0f),
         VGet(2000.0f, -33.0f, 0.0f),
         GetColor(120, 80, 80)
     );
 
-    // 中央のZ軸
     DrawLine3D(
         VGet(0.0f, -33.0f, -2000.0f),
         VGet(0.0f, -33.0f, 2000.0f),

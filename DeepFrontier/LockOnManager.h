@@ -26,4 +26,6 @@ public:
     bool IsLockOn() const;
     EnemyBase* GetTargetEnemy() const;
     VECTOR GetTargetPosition() const;
+private:
+	bool IsTargetEnemy(EnemyBase* enemy, VECTOR playerPos) const;
 };

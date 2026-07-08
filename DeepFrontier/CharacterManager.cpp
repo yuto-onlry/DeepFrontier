@@ -18,23 +18,38 @@ void CharacterManager::Init()
     lockOnManager.Init();
 }
 
-void CharacterManager::Update(const InputManager& inputManager,VECTOR cameraForward,VECTOR cameraRight)
+void CharacterManager::Update(
+    const InputManager& inputManager,
+    VECTOR cameraForward,
+    VECTOR cameraRight
+)
 {
+    // 先にロックオン更新
     if (player != nullptr)
     {
-        player->Update(inputManager, cameraForward, cameraRight);
+        lockOnManager.Update(
+            inputManager,
+            player->GetPosition(),
+            enemyManager
+        );
+    }
+
+    // ロックオン情報をPlayerへ渡す
+    if (player != nullptr)
+    {
+        player->Update(
+            inputManager,
+            cameraForward,
+            cameraRight,
+            lockOnManager.IsLockOn(),
+            lockOnManager.GetTargetPosition()
+        );
     }
 
     VECTOR playerPos = GetPlayerPosition();
 
-    // 敵全体の更新は EnemyManager に任せる
+    // 敵全体の更新
     enemyManager.Update(playerPos);
-
-    // ロックオン更新
-    if (player != nullptr)
-    {
-        lockOnManager.Update(inputManager, player->GetPosition(), enemyManager);
-    }
 
     // コライダー登録
     collisionManager.Clear();
@@ -130,7 +145,6 @@ void CharacterManager::Update(const InputManager& inputManager,VECTOR cameraForw
         }
     }
 }
-
 void CharacterManager::Draw()
 {
     if (player != nullptr)
@@ -188,4 +202,13 @@ void CharacterManager::SpawnWave(int waveNo)
 {
     lockOnManager.Clear();
     enemyManager.SpawnWave(waveNo);
+}
+bool CharacterManager::IsLockOn() const
+{
+    return lockOnManager.IsLockOn();
+}
+
+EnemyBase* CharacterManager::GetLockOnTarget() const
+{
+    return lockOnManager.GetTargetEnemy();
 }

@@ -45,7 +45,7 @@ void Player::Init()
     playerAction.Init(this);
     isDead = false;
 }
-void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECTOR cameraRight)
+void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECTOR cameraRight, bool isLockOn, VECTOR lockOnTargetPos)
 {
     velocity = VGet(0.0f, 0.0f, 0.0f);
 
@@ -116,6 +116,10 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
     //アニメーションの更新
     if (playerAction.IsAction())
     {
+        // ロックオン中はターゲットの方向を向く
+        if (isLockOn == true)
+            LookAtTarget(lockOnTargetPos);
+
         playerAction.Update(position, forward);
         // 攻撃中、かつまだヒットしていない時だけ武器判定true
         if (state == PlayerState::Attack && isAttackHit == false)
@@ -131,6 +135,9 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
     //攻撃
     if (inputManager.IsButtonDown(InputManager::PadButton::X))
     {
+        if (isLockOn == true)
+            LookAtTarget(lockOnTargetPos);
+        
         state = PlayerState::Attack;
         animationManager.ChangeAnim(AnimationType::Attack);
 
@@ -157,7 +164,14 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
         {
             position.x += moveInput.x * 80.0f;
             position.z += moveInput.z * 80.0f;
-			forward = moveDir;
+            if (isLockOn == false)
+            {
+                forward = moveDir;
+            }
+            else
+            {
+                LookAtTarget(lockOnTargetPos);
+            }
         }
         // 回避では攻撃判定を出さない
         weapon.SetAttackColliderActive(false);
@@ -235,8 +249,13 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
 
     animationManager.Update();
 
-    // 移動しているときだけ向きを変える
-    if (isMove == true)
+    // ロックオン中は敵の方向を向く
+    if (isLockOn == true)
+    {
+        LookAtTarget(lockOnTargetPos);
+    }
+    // 通常時は移動方向を向く
+    else if (isMove == true)
     {
         forward = moveDir;
 
@@ -247,7 +266,7 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
             modelHandle,
             VGet(DX_PI_F / 2.0f, angleY + modelOffset, 0.0f)
         );
-    }
+    } 
     MV1SetPosition(modelHandle, position);
     UpdateCollider();
     weapon.Update();
@@ -277,6 +296,44 @@ void Player::Release()
     }
 
     CharacterBase::Release();
+}
+/// <summary>
+/// 指定した座標の方向を向く
+/// </summary>
+/// <param name="targetPos"></param>
+void Player::LookAtTarget(VECTOR targetPos)
+{
+    VECTOR direction;
+
+    direction.x = targetPos.x - position.x;
+    direction.y = 0.0f;
+    direction.z = targetPos.z - position.z;
+
+    float length = sqrtf(
+        direction.x * direction.x +
+        direction.z * direction.z
+    );
+
+    if (length <= 0.001f)
+    {
+        return;
+    }
+
+    direction.x /= length;
+    direction.z /= length;
+
+    // 攻撃方向にも使えるように forward を更新
+    forward = direction;
+
+    if (modelHandle != -1)
+    {
+        float angleY = atan2f(forward.x, forward.z);
+
+        MV1SetRotationXYZ(
+            modelHandle,
+            VGet(DX_PI_F / 2.0f, angleY + DX_PI_F, 0.0f)
+        );
+    }
 }
 // 攻撃判定のコライダーの数を取得
 int Player::GetAttackColliderCount() const
