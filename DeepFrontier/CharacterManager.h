@@ -5,6 +5,7 @@
 #include "InputManager.h"
 #include "CollisionManager.h"
 #include "EnemyManager.h"
+#include "LockOnManager.h"
 #include <vector>
 #include <memory>
 
@@ -16,6 +17,7 @@ private:
 
 	EnemyManager enemyManager;  
     CollisionManager collisionManager;
+    LockOnManager lockOnManager;
 
 public:
     CharacterManager();
@@ -29,6 +31,7 @@ public:
     VECTOR GetPlayerPosition() const;
     Player* GetPlayer();
     int GetEnemyCount() const;
+    EnemyBase* GetLockOnTarget() const;
 public:
 	// 敵同士の衝突判定
     void ResolveEnemyCollision();
@@ -37,5 +40,6 @@ public:
 
 public:
     bool IsAllEnemyDead() const;
+    bool IsLockOn() const;
 
 };

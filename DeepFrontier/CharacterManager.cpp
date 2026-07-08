@@ -15,19 +15,11 @@ void CharacterManager::Init()
     player->Init();
 
     enemyManager.Init();
-
-    // 敵はここでは出さない
-    // Wave制にするので Main か GameManager 側から SpawnWave する
+    lockOnManager.Init();
 }
 
-void CharacterManager::Update(
-    const InputManager& inputManager,
-    VECTOR cameraForward,
-    VECTOR cameraRight
-)
+void CharacterManager::Update(const InputManager& inputManager,VECTOR cameraForward,VECTOR cameraRight)
 {
-    collisionManager.Clear();
-
     if (player != nullptr)
     {
         player->Update(inputManager, cameraForward, cameraRight);
@@ -37,6 +29,12 @@ void CharacterManager::Update(
 
     // 敵全体の更新は EnemyManager に任せる
     enemyManager.Update(playerPos);
+
+    // ロックオン更新
+    if (player != nullptr)
+    {
+        lockOnManager.Update(inputManager, player->GetPosition(), enemyManager);
+    }
 
     // コライダー登録
     collisionManager.Clear();
@@ -141,13 +139,14 @@ void CharacterManager::Draw()
     }
 
     enemyManager.Draw();
-
+	lockOnManager.Draw();
     collisionManager.DrawDebug();
 }
 
 void CharacterManager::Release()
 {
     collisionManager.Clear();
+	lockOnManager.Clear();
 
     if (player != nullptr)
     {
@@ -187,5 +186,6 @@ int CharacterManager::GetEnemyCount() const
 
 void CharacterManager::SpawnWave(int waveNo)
 {
+    lockOnManager.Clear();
     enemyManager.SpawnWave(waveNo);
 }

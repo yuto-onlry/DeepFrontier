@@ -1,7 +1,6 @@
 #pragma once
 #include "DxLib.h"
 #include <cmath>
-#include <csignal>
 
 class InputManager
 {
@@ -13,7 +12,7 @@ public:
         X ,
         Y ,
         LB ,
-        RB,
+        RB, 
 		Back,
 		Start,
         LT,
@@ -41,4 +40,6 @@ public:
 public:
     bool IsButton(PadButton button) const;
     bool IsButtonDown(PadButton button) const;
+    bool IsLockOnButton() const;
+    bool IsLockOnButtonDown() const;
 };

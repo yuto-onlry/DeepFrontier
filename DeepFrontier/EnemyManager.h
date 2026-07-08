@@ -27,10 +27,16 @@ public:
     void RemoveDeadEnemies();
 
     void AddColliders(CollisionManager& collisionManager);
-    bool IsAllEnemyDead() const;
+	//指定されたEnemyが攻撃担当かどうかを判定する
     void SpawnWave(int waveNo);
+	//最大同時攻撃可能数を取得する
+    bool ContainsEnemy(EnemyBase* enemy) const;
+	//すべての敵が死亡しているかどうかを判定する
+    bool IsAllEnemyDead() const;
 public:
     int GetEnemyCount() const;
+	//指定されたEnemyが攻撃担当かどうかを判定する
+    EnemyBase* GetNearestEnemy(VECTOR playerPos, float searchRange) const;
 public:
     void SetMaxEnemyAttackCount(int count);
 

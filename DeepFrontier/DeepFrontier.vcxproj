@@ -163,6 +163,7 @@
     <ClCompile Include="HpGauge.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LittleEnemy.cpp" />
+    <ClCompile Include="LockOnManager.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ModelPreset.cpp" />
     <ClCompile Include="PlayerAction.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="HpGauge.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="LittleEnemy.h" />
+    <ClInclude Include="LockOnManager.h" />
     <ClInclude Include="ModelPreset.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerAction.h" />

@@ -99,3 +99,16 @@ bool InputManager::IsButtonDown(PadButton button) const
     return currentInput.Buttons[buttonNo] != 0 &&
         prevInput.Buttons[buttonNo] == 0;
 }
+/// <summary>
+/// ロックオンボタンが押されているかを判定する
+/// </summary>
+/// <returns></returns>
+bool InputManager::IsLockOnButton() const
+{
+    return IsButton(PadButton::RB);
+}
+
+bool InputManager::IsLockOnButtonDown() const
+{
+    return IsButtonDown(PadButton::RB);
+}

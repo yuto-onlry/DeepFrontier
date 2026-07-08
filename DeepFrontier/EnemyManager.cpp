@@ -238,6 +238,47 @@ int EnemyManager::GetEnemyCount() const
 {
     return (int)enemies.size();
 }
+
+/// <summary>
+/// プレイヤーの座標から最も近い敵を取得する
+/// </summary>
+/// <param name="playerPos"></param>
+/// <param name="searchRange"></param>
+/// <returns></returns>
+EnemyBase* EnemyManager::GetNearestEnemy(VECTOR playerPos, float searchRange) const
+{
+    EnemyBase* nearestEnemy = nullptr;
+
+    float nearestDistanceSq = searchRange * searchRange;
+
+    for (const auto& enemy : enemies)
+    {
+        if (enemy == nullptr || enemy->IsDead() == true)
+        {
+            continue;
+        }
+
+        VECTOR enemyPos = enemy->GetPosition();
+
+        float dx = enemyPos.x - playerPos.x;
+        float dz = enemyPos.z - playerPos.z;
+
+        float distanceSq = dx * dx + dz * dz;
+
+        if (distanceSq < nearestDistanceSq)
+        {
+            nearestDistanceSq = distanceSq;
+            nearestEnemy = enemy.get();
+        }
+    }
+
+    return nearestEnemy;
+}
+
+bool EnemyManager::ContainsEnemy(EnemyBase* enemy) const
+{
+    return ExistsEnemy(enemy);
+}
 /// <summary>
 /// 敵のコライダーをCollisionManagerに追加する
 /// </summary>

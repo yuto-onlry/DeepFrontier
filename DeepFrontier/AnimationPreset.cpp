@@ -24,6 +24,13 @@ void AnimationPreset::SetAnimationPlayer(AnimationManager& animManager, int mode
 
         animManager.ChangeAnim(AnimationType::Idle);
     }
+
+    animManager.LoadAnimModelForType(
+        AnimationType::Idle,
+        "../Animation/Enemy/Idle.mv1",
+        0
+    );
+
 }
 
 void AnimationPreset::SetAnimationLittleEnemy(AnimationManager& animManager, int modelHandle)
