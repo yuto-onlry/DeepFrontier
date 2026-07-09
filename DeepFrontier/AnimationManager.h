@@ -8,15 +8,17 @@ enum class AnimationType
 {
 	Idle,       // 待機
 	Walk,       // 歩行
+	WalkBack,   // 後退
     Run,        // 走行
     MoveLeft,  // 左移動
     MoveRight, // 右移動
     Attack,     // 攻撃
 	StrongAttack, // 強攻撃
-	AttackLockOn,  // 攻撃ロックオン
-	JumpStart,       // ジャンプ
-	JumpLoop,        // ジャンプ中
-	JumpEnd,         // 着地
+	LockOnIdle,         // ロックオン待機
+	LockOnWalk,         // ロックオン歩行
+	LockOnLateralMove,     // ロックオン左右移動
+	LockOnAttack,       // ロックオン攻撃
+	Jump,       // ジャンプ
 	Avoid,      // 回避       
     Damage,     // ダメージ
 	GetUp,      // 起き上がり

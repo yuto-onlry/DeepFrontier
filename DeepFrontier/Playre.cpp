@@ -4,6 +4,11 @@
 #include "ModelPreset.h"
 #include <cmath>
 
+namespace
+{
+    const float PLAYER_MODEL_ROT_X = 0.0f;
+    const float PLAYER_MODEL_OFFSET_Y = DX_PI_F;
+}
 Player::Player()
     :state(PlayerState::Idle),
 	 animModelHandle(-1),
@@ -192,7 +197,7 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
         verticalVelocity = 15.0f;
 
         state = PlayerState::Jump;
-        animationManager.ChangeAnim(AnimationType::JumpStart);
+        animationManager.ChangeAnim(AnimationType::Jump);
     }
 
     // 移動速度
@@ -220,10 +225,10 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
             verticalVelocity = 0.0f;
             isJumping = false;
 
-            animationManager.ChangeAnim(AnimationType::JumpEnd);
+            animationManager.ChangeAnim(AnimationType::Jump);
         }
         else
-            animationManager.ChangeAnim(AnimationType::JumpLoop);
+            animationManager.ChangeAnim(AnimationType::Jump);
     }
     else
     {
@@ -243,7 +248,15 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
         else
         {
             state = PlayerState::Idle;
-            animationManager.ChangeAnim(AnimationType::Idle);
+
+            if (isLockOn == true)
+            {
+                animationManager.ChangeAnim(AnimationType::LockOnIdle);
+            }
+            else
+            {
+                animationManager.ChangeAnim(AnimationType::Idle);
+            }
         }
     }
 
@@ -264,8 +277,7 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
 
         MV1SetRotationXYZ(
             modelHandle,
-            VGet(DX_PI_F / 2.0f, angleY + modelOffset, 0.0f)
-        );
+            VGet(0.0f, angleY + modelOffset, 0.0f));
     } 
     MV1SetPosition(modelHandle, position);
     UpdateCollider();
@@ -331,7 +343,11 @@ void Player::LookAtTarget(VECTOR targetPos)
 
         MV1SetRotationXYZ(
             modelHandle,
-            VGet(DX_PI_F / 2.0f, angleY + DX_PI_F, 0.0f)
+            VGet(
+                PLAYER_MODEL_ROT_X,
+                angleY + PLAYER_MODEL_OFFSET_Y,
+                0.0f
+            )
         );
     }
 }

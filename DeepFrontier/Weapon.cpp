@@ -53,7 +53,7 @@ bool Weapon::Init(int playerModelHandle, CharacterBase* owner)
         return false;
 
     // 右手フレームのインデックスを取得
-    attachFrameIndex = MV1SearchFrame(ownerModelHandle, "hand_r");
+    attachFrameIndex = MV1SearchFrame(ownerModelHandle, "mixamorig:RightHand");
     if (attachFrameIndex == -1)
         return false;
 
@@ -142,10 +142,10 @@ void Weapon::Draw()
         MV1DrawModel(WeaponModelHandle);
 
         // 攻撃判定のデバッグ表示
-        for (int i = 0; i < AttackColliderCount; i++)
-        {
-            attackColliders[i].DrawDebug();
-        }     
+        //for (int i = 0; i < AttackColliderCount; i++)
+        //{
+        //    attackColliders[i].DrawDebug();
+        //}     
     }
 }void Weapon::Release()
 {

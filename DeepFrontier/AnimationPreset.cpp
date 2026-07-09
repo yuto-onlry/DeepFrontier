@@ -4,34 +4,87 @@ void AnimationPreset::SetAnimationPlayer(AnimationManager& animManager, int mode
 {
     animManager.Init(modelHandle);
 
-    if (animManager.LoadAnimModel("../Animation/Player/PlayerAnimation.mv1") == true ||
-		animManager.LoadAnimModel("../Animation/Player/PlayerAnimation2.mv1") == true)
-    {
-		// アニメーション指定+割り振り
-        animManager.SetAnimIndex(AnimationType::Idle, 9);
-		animManager.SetAnimIndex(AnimationType::Walk, 42);
-        animManager.SetAnimIndex(AnimationType::Run, 36);
-		animManager.SetAnimIndex(AnimationType::Attack, 39);
-		animManager.SetAnimIndex(AnimationType::StrongAttack, 12);
-		animManager.SetAnimIndex(AnimationType::AttackLockOn, 40);
-		animManager.SetAnimIndex(AnimationType::JumpStart, 16);
-		animManager.SetAnimIndex(AnimationType::JumpLoop, 15);
-		animManager.SetAnimIndex(AnimationType::JumpEnd, 14);
-		animManager.SetAnimIndex(AnimationType::Avoid, 27);
-		animManager.SetAnimIndex(AnimationType::Damage, 1);
-		animManager.SetAnimIndex(AnimationType::GetUp, 16);
-		animManager.SetAnimIndex(AnimationType::Dead, 8);
-
-        animManager.ChangeAnim(AnimationType::Idle);
-    }
-
     animManager.LoadAnimModelForType(
         AnimationType::Idle,
-        "../Animation/Enemy/Idle.mv1",
+        "../Animation/Player/Idle.mv1",
         0
     );
 
+    animManager.LoadAnimModelForType(
+        AnimationType::Walk,
+        "../Animation/Player/Walk.mv1",
+        0
+    );
+
+    animManager.LoadAnimModelForType(
+        AnimationType::WalkBack,
+        "../Animation/Player/WalkBack.mv1",
+        0
+    );
+
+    animManager.LoadAnimModelForType(
+        AnimationType::Run,
+        "../Animation/Player/Run.mv1",
+        0
+    );
+
+    animManager.LoadAnimModelForType(
+        AnimationType::Attack,
+        "../Animation/Player/Attack.mv1",
+        0
+    );
+
+    animManager.LoadAnimModelForType(
+        AnimationType::Avoid,
+        "../Animation/Player/Avoid.mv1",
+        0
+    );
+
+    animManager.LoadAnimModelForType(
+        AnimationType::Jump,
+        "../Animation/Player/Jump.mv1",
+        0
+    );
+
+    animManager.LoadAnimModelForType(
+        AnimationType::Damage,
+        "../Animation/Player/Guard.mv1",
+        0
+    );
+
+    animManager.LoadAnimModelForType(
+        AnimationType::GetUp,
+        "../Animation/Player/GetUp.mv1",
+        0
+    );
+
+    animManager.LoadAnimModelForType(
+        AnimationType::Dead,
+        "../Animation/Player/Dead.mv1",
+        0
+    );
+
+    animManager.LoadAnimModelForType(
+        AnimationType::StrongAttack,
+        "../Animation/Player/SpinningSlashAttack.mv1",
+        0
+    );
+
+    animManager.LoadAnimModelForType(
+        AnimationType::LockOnIdle,
+        "../Animation/Player/LockOnIdle.mv1",
+        0
+    );
+
+    animManager.LoadAnimModelForType(
+        AnimationType::LockOnLateralMove,
+        "../Animation/Player/LockOnLateralMove.mv1",
+        0
+    );
+
+    animManager.ChangeAnim(AnimationType::Idle);
 }
+
 
 void AnimationPreset::SetAnimationLittleEnemy(AnimationManager& animManager, int modelHandle)
 {

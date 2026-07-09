@@ -4,15 +4,15 @@ int ModelPreset::littleEnemyBaseHandle = -1;
 
 int ModelPreset::LoadPlayerModel()
 {
-    int modelHandle = MV1LoadModel("../3dModel/Player/UAL2_Standard.mv1");
+    int modelHandle = MV1LoadModel("../3dModel/Player/Player.mv1");
 
     if (modelHandle == -1)
     {
         return -1;
     }
 
-    MV1SetScale(modelHandle, VGet(200.0f, 200.0f, 200.0f));
-    MV1SetRotationXYZ(modelHandle, VGet(DX_PI_F / 2.0f, 0.0f, 0.0f));
+    MV1SetScale(modelHandle, VGet(1.5f, 1.5f, 1.5f));
+    MV1SetRotationXYZ(modelHandle, VGet(0.0f, 0.0f, 0.0f));
 
     return modelHandle;
 }
