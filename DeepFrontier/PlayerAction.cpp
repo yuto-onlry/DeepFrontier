@@ -36,7 +36,7 @@ void PlayerAction::StartAttack(VECTOR playerPos, VECTOR forward)
 {
     currentAction = PlayerActionType::Attack;
 
-    actionTimer = 30;
+    actionTimer = 60;
 	// 攻撃のフレーム数をリセット
     attackFrame = 0;
 	//判定を出すフレーム

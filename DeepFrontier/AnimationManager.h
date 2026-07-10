@@ -58,4 +58,5 @@ public:
     // アニメーション番号を設定するセッター
     void SetAnimIndex(AnimationType type, int animIndex);
     void SetSpeed(float speed);
+	void SetAnimTime(float time);
 };

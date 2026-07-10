@@ -232,34 +232,53 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
     }
     else
     {
-        if (isMove == true)
+        if (isLockOn == true)
         {
-            if (inputManager.IsButton(InputManager::PadButton::LB))
+            // ロックオン中は常に敵の方向を向く
+            LookAtTarget(lockOnTargetPos);
+
+            if (isMove == true)
             {
-                state = PlayerState::Run;
-                animationManager.ChangeAnim(AnimationType::Run);
+                state = PlayerState::Walk;
+
+                // 左右入力が強いなら横移動アニメーション
+                if (fabsf(moveInput.x) > fabsf(moveInput.z))
+                {
+                    animationManager.ChangeAnim(AnimationType::LockOnLateralMove);
+                }
+                else
+                {
+                    animationManager.ChangeAnim(AnimationType::LockOnWalk);
+                }
             }
             else
             {
-                state = PlayerState::Walk;
-                animationManager.ChangeAnim(AnimationType::Walk);
+                state = PlayerState::Idle;
+                animationManager.ChangeAnim(AnimationType::LockOnIdle);
             }
         }
         else
         {
-            state = PlayerState::Idle;
-
-            if (isLockOn == true)
+            if (isMove == true)
             {
-                animationManager.ChangeAnim(AnimationType::LockOnIdle);
+                if (inputManager.IsButton(InputManager::PadButton::LB))
+                {
+                    state = PlayerState::Run;
+                    animationManager.ChangeAnim(AnimationType::Run);
+                }
+                else
+                {
+                    state = PlayerState::Walk;
+                    animationManager.ChangeAnim(AnimationType::Walk);
+                }
             }
             else
             {
+                state = PlayerState::Idle;
                 animationManager.ChangeAnim(AnimationType::Idle);
             }
         }
-    }
-
+    }   
     animationManager.Update();
 
     // ロックオン中は敵の方向を向く

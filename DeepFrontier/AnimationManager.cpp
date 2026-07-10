@@ -58,12 +58,30 @@ void AnimationManager::Update()
 
     if (animTime >= animTotalTime)
     {
-        animTime = 0.0f;
+        switch (currentAnimType)
+        {
+        case AnimationType::Idle:
+        case AnimationType::Walk:
+        case AnimationType::WalkBack:
+        case AnimationType::Run:
+        case AnimationType::MoveLeft:
+        case AnimationType::MoveRight:
+        case AnimationType::LockOnIdle:
+        case AnimationType::LockOnWalk:
+        case AnimationType::LockOnLateralMove:
+            // 移動系・待機系はループ
+            animTime = 0.0f;
+            break;
+
+        default:
+            // 攻撃・回避・ダメージ・死亡などは最後で止める
+            animTime = animTotalTime;
+            break;
+        }
     }
 
     MV1SetAttachAnimTime(modelHandle, attachAnimIndex, animTime);
 }
-
 void AnimationManager::ChangeAnim(AnimationType type)
 {
     int typeIndex = (int)type;
@@ -115,6 +133,32 @@ void AnimationManager::ChangeAnim(AnimationType type)
 
     animTime = 0.0f;
     animTotalTime = MV1GetAttachAnimTotalTime(modelHandle, attachAnimIndex);
+
+    // アニメーションごとの再生速度
+    switch (type)
+    {
+    case AnimationType::Attack:
+    case AnimationType::StrongAttack:
+    case AnimationType::LockOnAttack:
+        animSpeed = 1.0f;
+        break;
+
+    case AnimationType::Avoid:
+    case AnimationType::Jump:
+    case AnimationType::Damage:
+    case AnimationType::GetUp:
+    case AnimationType::Dead:
+        animSpeed = 0.7f;
+        break;
+
+    case AnimationType::Run:
+        animSpeed = 0.7f;
+        break;
+
+    default:
+        animSpeed = 0.5f;
+        break;
+    }
 }
 bool AnimationManager::LoadAnimModel(const char* filePath)
 {
