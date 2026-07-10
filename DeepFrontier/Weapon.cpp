@@ -50,31 +50,31 @@ bool Weapon::Init(int playerModelHandle, CharacterBase* owner)
     // 武器モデル読み込み
     WeaponModelHandle = MV1LoadModel("../3dModel/Player/Weapon/Weapon.mv1");
     if (WeaponModelHandle == -1)
+    {
         return false;
+    }
 
     // 右手フレームのインデックスを取得
     attachFrameIndex = MV1SearchFrame(ownerModelHandle, "mixamorig:RightHand");
     if (attachFrameIndex == -1)
+    {
         return false;
+    }
 
-    // 武器の大きさ
-    scale = VGet(0.01f, 0.01f, 0.01f);
-    // 手元への調整
-    offsetPosition = VGet(0.0f, 0.1f, -0.9f);
-    // 武器の向き調整
-    offsetRotation = VGet(DX_PI_F / 2.0f, 0.0f, DX_PI_F / 2.0f);
+    // 武器の見た目調整
+    scale = VGet(1.2f, 1.2f, 1.2f);
+    offsetRotation = VGet(0.0f, 0.0f, DX_PI_F / 2.0f);
+    offsetPosition = VGet(0.0f, 0.0f, 0.0f);
+
     // 攻撃判定設定
     for (int i = 0; i < AttackColliderCount; i++)
     {
         attackColliders[i].SetTag(ColliderTag::PlayerAttack);
         attackColliders[i].SetOwner(owner);
-		// 攻撃判定の大きさ
-        attackColliders[i].SetRadius(25.0f);
+        attackColliders[i].SetRadius(15.0f);
         attackColliders[i].SetActive(false);
     }
 
-    // 今まで剣先に出ていた判定位置
-    attackLocalOffset = VGet(0.0f, 0.0f, 0.0f);
     return true;
 }
 void Weapon::Update()
@@ -84,8 +84,10 @@ void Weapon::Update()
         return;
     }
 
+    // 右手のワールド行列
     MATRIX handMatrix = MV1GetFrameLocalWorldMatrix(ownerModelHandle, attachFrameIndex);
 
+    // 武器の調整行列
     MATRIX scaleMatrix = MGetScale(scale);
 
     MATRIX rotX = MGetRotX(offsetRotation.x);
@@ -96,58 +98,53 @@ void Weapon::Update()
 
     MATRIX transMatrix = MGetTranslate(offsetPosition);
 
-    MATRIX offsetMatrix = MMult(MMult(scaleMatrix, rotMatrix), transMatrix);
-
-    MATRIX weaponMatrix = MMult(offsetMatrix, handMatrix);
-
-    MV1SetMatrix(WeaponModelHandle, weaponMatrix);
-
-    // 手元位置
-    VECTOR rootPos = VGet(
-        handMatrix.m[3][0],
-        handMatrix.m[3][1],
-        handMatrix.m[3][2]
+    MATRIX offsetMatrix = MMult(
+        MMult(scaleMatrix, rotMatrix),
+        transMatrix
     );
 
-	// 剣先位置
-    VECTOR tipPos = TransformPoint(attackLocalOffset, weaponMatrix);
+    // 武器を右手に追従させる
+    MATRIX weaponMatrix = MMult(offsetMatrix, handMatrix);
+    MV1SetMatrix(WeaponModelHandle, weaponMatrix);
 
-	// 攻撃判定のコライダーを剣の根元から剣先まで均等に配置
+    // 刃の当たり判定位置
+    VECTOR bladeStartLocalOffset = VGet(0.0f, -22.0f, 0.0f);
+    VECTOR bladeTipLocalOffset = VGet(0.0f, -70.0f, 0.0f);
+
+    VECTOR bladeStartPos = TransformPoint(bladeStartLocalOffset, weaponMatrix);
+    VECTOR bladeTipPos = TransformPoint(bladeTipLocalOffset, weaponMatrix);
+
+    // 刃の根元から剣先まで球を並べる
     for (int i = 0; i < AttackColliderCount; i++)
     {
-		// 攻撃判定のコライダーの位置を補間するための
-        float startRate = 0.25f;
-		// 剣先の位置を1.0fと過程
-        float endRate = 1.0f;
-
-        float t = startRate;
+        float t = 0.0f;
 
         if (AttackColliderCount > 1)
         {
-            t = startRate + (endRate - startRate) * ((float)i / (float)(AttackColliderCount - 1));
+            t = (float)i / (float)(AttackColliderCount - 1);
         }
 
         VECTOR pos;
-        pos.x = rootPos.x + (tipPos.x - rootPos.x) * t;
-        pos.y = rootPos.y + (tipPos.y - rootPos.y) * t;
-        pos.z = rootPos.z + (tipPos.z - rootPos.z) * t;
+        pos.x = bladeStartPos.x + (bladeTipPos.x - bladeStartPos.x) * t;
+        pos.y = bladeStartPos.y + (bladeTipPos.y - bladeStartPos.y) * t;
+        pos.z = bladeStartPos.z + (bladeTipPos.z - bladeStartPos.z) * t;
 
         attackColliders[i].SetPosition(pos);
     }
 }
 void Weapon::Draw()
 {
-    if (WeaponModelHandle != -1)
-    {
-        MV1DrawModel(WeaponModelHandle);
+    if (WeaponModelHandle == -1)
+        return;
 
-        // 攻撃判定のデバッグ表示
-        //for (int i = 0; i < AttackColliderCount; i++)
-        //{
-        //    attackColliders[i].DrawDebug();
-        //}     
-    }
-}void Weapon::Release()
+    MV1DrawModel(WeaponModelHandle);
+
+    // 攻撃判定のデバッグ表示
+    for (int i = 0; i < AttackColliderCount; i++)
+        attackColliders[i].DrawDebug();
+    
+}
+void Weapon::Release()
 {
     if (WeaponModelHandle != -1)
     {
