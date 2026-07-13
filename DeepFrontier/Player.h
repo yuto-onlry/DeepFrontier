@@ -7,6 +7,7 @@
 #include "SphereCollider.h"
 #include "Weapon.h"
 #include "PlayerRootMotion.h"
+#include "PlayerCombo.h"
 #include <dinput.h>
 
 class Player : public CharacterBase
@@ -42,6 +43,8 @@ private:
     bool isAttackHit;
 
     PlayerRootMotion rootMotion;
+private:
+    PlayerCombo playerCombo;
 
 private:
     // Hipsフレーム
@@ -96,4 +99,6 @@ public:
 
 public:
     void DisableAttackCollider();
+private:
+    void StartComboAttack(int index, bool isLockOn, VECTOR lockOnTargetPos);
 };

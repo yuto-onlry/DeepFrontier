@@ -66,21 +66,13 @@ void Player::Init()
     weapon.Init(modelHandle, this);
 
     playerAction.Init(this);
-
+    playerCombo.Init();
     isAttackHit = false;
     isAttackRootMotion = false;
     hasAttackRootMoveDir = false;
 
     isDead = false;
 
-    FILE* fp = nullptr;
-    fopen_s(&fp, "RootMotionDebug.txt", "w");
-
-    if (fp != nullptr)
-    {
-        fprintf(fp, "RootMotion Debug Start\n");
-        fclose(fp);
-    }
 }
 
 void Player::Update(
@@ -184,6 +176,8 @@ void Player::Update(
             {
                 animationManager.ChangeAnim(AnimationType::Idle);
             }
+
+            if(wasAttack)
 
             animationManager.Update();
 
@@ -392,6 +386,30 @@ void Player::Update(
     MV1SetPosition(modelHandle, position);
     UpdateCollider();
     weapon.Update();
+}
+
+void Player::StartComboAttack(int index, bool isLockOn, VECTOR lockOnTargetPos)
+{
+    if (isLockOn == true)
+    {
+        LookAtTarget(lockOnTargetPos);
+    }
+
+    state = PlayerState::Attack;
+
+    playerCombo.SetIndex(index);
+
+    AnimationType animType = playerCombo.GetAnimationType(isLockOn);
+    animationManager.ChangeAnim(animType);
+
+    PlayerAction::AttackData attackData = playerCombo.GetAttackData();
+    playerAction.StartAttack(position, forward, attackData);
+
+    isAttackHit = false;
+
+    StartAttackRootMotion();
+
+    weapon.SetAttackColliderActive(true);
 }
 
 void Player::UpdateCollider()

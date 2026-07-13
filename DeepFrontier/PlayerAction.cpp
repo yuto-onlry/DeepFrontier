@@ -34,21 +34,39 @@ void PlayerAction::Init(CharacterBase* owner)
 
 void PlayerAction::StartAttack(VECTOR playerPos, VECTOR forward)
 {
+    AttackData attackData;
+
+    attackData.actionTime = 60;
+    attackData.hitStartFrame = 14;
+    attackData.hitEndFrame = 25;
+
+    StartAttack(playerPos, forward, attackData);
+}
+
+void PlayerAction::StartAttack(
+    VECTOR playerPos,
+    VECTOR forward,
+    const AttackData& attackData
+)
+{
     currentAction = PlayerActionType::Attack;
 
-    actionTimer = 60;
-	// 攻撃のフレーム数をリセット
+    actionTimer = attackData.actionTime;
+
+    // 攻撃のフレーム数をリセット
     attackFrame = 0;
-	//判定を出すフレーム
-    attackHitStartFrame = 14;
-	//判定を消すフレーム
-    attackHitEndFrame = 25;
+
+    // 判定を出すフレーム
+    attackHitStartFrame = attackData.hitStartFrame;
+
+    // 判定を消すフレーム
+    attackHitEndFrame = attackData.hitEndFrame;
 
     attackHit = false;
 
-	// 攻撃コライダーの位置を更新
     attackCollider.SetActive(false);
 }
+
 void PlayerAction::StartAvoid()
 {
     currentAction = PlayerActionType::Avoid;
@@ -72,13 +90,20 @@ void PlayerAction::Update(VECTOR playerPos, VECTOR forward)
     {
         attackFrame++;
 
-		// 攻撃判定を出すフレームだけture
-        if (attackFrame >= attackHitStartFrame && attackFrame <= attackHitEndFrame && attackHit == true)
+        // 攻撃判定を出すフレームだけtrue
+        if (attackFrame >= attackHitStartFrame &&
+            attackFrame <= attackHitEndFrame &&
+            attackHit == true)
         {
             attackCollider.SetActive(true);
 
             attackCollider.SetPosition(
-                VGet(playerPos.x + forward.x * 120.0f, playerPos.y + 120.0f, playerPos.z + forward.z * 120.0f));
+                VGet(
+                    playerPos.x + forward.x * 120.0f,
+                    playerPos.y + 120.0f,
+                    playerPos.z + forward.z * 120.0f
+                )
+            );
         }
         else
         {
@@ -98,6 +123,7 @@ void PlayerAction::Update(VECTOR playerPos, VECTOR forward)
         attackFrame = 0;
     }
 }
+
 bool PlayerAction::IsAction() const
 {
     return actionTimer > 0;
@@ -106,6 +132,23 @@ bool PlayerAction::IsAction() const
 bool PlayerAction::IsAttack() const
 {
     return currentAction == PlayerActionType::Attack;
+}
+
+bool PlayerAction::IsComboAcceptFrame() const
+{
+    if (currentAction != PlayerActionType::Attack)
+    {
+        return false;
+    }
+
+    // 連続攻撃の入力受付時間
+    // まずは攻撃開始から15F以降なら予約できる形にする
+    if (attackFrame >= 15)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 void PlayerAction::AttackCollider()
