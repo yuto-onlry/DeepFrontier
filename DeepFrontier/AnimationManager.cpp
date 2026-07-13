@@ -45,14 +45,10 @@ void AnimationManager::Init(int model)
 void AnimationManager::Update()
 {
     if (modelHandle == -1)
-    {
-        return;
-    }
+        return; 
 
     if (attachAnimIndex == -1)
-    {
-        return;
-    }
+      return;    
 
     animTime += animSpeed;
 

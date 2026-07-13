@@ -9,13 +9,26 @@ namespace
     const float PLAYER_MODEL_ROT_X = 0.0f;
     const float PLAYER_MODEL_OFFSET_Y = DX_PI_F;
 }
+
 Player::Player()
-    :state(PlayerState::Idle),
-	 animModelHandle(-1),
-     verticalVelocity(0.0f),
-     isJumping(false)
+    : state(PlayerState::Idle),
+    animModelHandle(-1),
+    verticalVelocity(0.0f),
+    isJumping(false),
+    playerAction(),
+    forward(VGet(0.0f, 0.0f, 1.0f)),
+    weapon(),
+    isAttackHit(false),
+    hipsFrameIndex(-1),
+    isAttackRootMotion(false),
+    attackRootStartPosition(VGet(0.0f, 0.0f, 0.0f)),
+    attackRootStartHipsOffset(VGet(0.0f, 0.0f, 0.0f)),
+    attackRootPrevHipsOffset(VGet(0.0f, 0.0f, 0.0f)),
+    attackRootMoveDir(VGet(0.0f, 0.0f, 1.0f)),
+    hasAttackRootMoveDir(false)
 {
-}    
+}
+
 Player::~Player()
 {
 }
@@ -30,40 +43,66 @@ void Player::Init()
     position = VGet(0.0f, 0.0f, 0.0f);
     velocity = VGet(0.0f, 0.0f, 0.0f);
     forward = VGet(0.0f, 0.0f, 1.0f);
-	//モデルの読み込み
-	modelHandle = ModelPreset::LoadPlayerModel();
+
+    modelHandle = ModelPreset::LoadPlayerModel();
     if (modelHandle == -1)
+    {
         return;
-	//モデルの位置をセット
+    }
+
+    rootMotion.Init(modelHandle);
     MV1SetPosition(modelHandle, position);
-	//アニメーションのセット
+
     AnimationPreset::SetAnimationPlayer(animationManager, modelHandle);
-    //コライダーセット
+
     capsuleCollider.SetTag(ColliderTag::Player);
     capsuleCollider.SetOwner(this);
     capsuleCollider.SetRadius(50.0f);
     capsuleCollider.SetHeight(310.0f);
     capsuleCollider.SetActive(true);
+
     UpdateCollider();
-    weapon.Init(modelHandle, this); 
-    //アクションコライダー
+
+    weapon.Init(modelHandle, this);
+
     playerAction.Init(this);
+
+    isAttackHit = false;
+    isAttackRootMotion = false;
+    hasAttackRootMoveDir = false;
+
     isDead = false;
+
+    FILE* fp = nullptr;
+    fopen_s(&fp, "RootMotionDebug.txt", "w");
+
+    if (fp != nullptr)
+    {
+        fprintf(fp, "RootMotion Debug Start\n");
+        fclose(fp);
+    }
 }
-void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECTOR cameraRight, bool isLockOn, VECTOR lockOnTargetPos)
+
+void Player::Update(
+    const InputManager& inputManager,
+    VECTOR cameraForward,
+    VECTOR cameraRight,
+    bool isLockOn,
+    VECTOR lockOnTargetPos
+)
 {
     velocity = VGet(0.0f, 0.0f, 0.0f);
 
-    float walkSpeed = 5.0f;
-    float dashSpeed = 9.0f;
+    const float walkSpeed = 5.0f;
+    const float dashSpeed = 9.0f;
 
     VECTOR moveInput = inputManager.GetLeftStick();
+
     weapon.SetAttackColliderActive(false);
 
-    // カメラ方向をXZ平面だけで使う
     cameraForward.y = 0.0f;
     cameraRight.y = 0.0f;
-    // カメラ前方向の正規化
+
     float forwardLength = sqrtf(
         cameraForward.x * cameraForward.x +
         cameraForward.z * cameraForward.z
@@ -79,7 +118,6 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
         cameraForward = VGet(0.0f, 0.0f, 1.0f);
     }
 
-    // カメラ右方向の正規化
     float rightLength = sqrtf(
         cameraRight.x * cameraRight.x +
         cameraRight.z * cameraRight.z
@@ -95,7 +133,6 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
         cameraRight = VGet(1.0f, 0.0f, 0.0f);
     }
 
-    // カメラ基準の移動方向
     VECTOR moveDir = VGet(0.0f, 0.0f, 0.0f);
 
     moveDir.x = cameraRight.x * moveInput.x + cameraForward.x * moveInput.z;
@@ -114,52 +151,106 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
         moveDir.x /= moveLength;
         moveDir.z /= moveLength;
         isMove = true;
-    }    MV1SetPosition(modelHandle, position);
-    UpdateCollider();
+    }
 
-    weapon.Update();
-    //アニメーションの更新
+    // アクション中
     if (playerAction.IsAction())
     {
-        // ロックオン中はターゲットの方向を向く
+        bool wasAttack = playerAction.IsAttack();
+
         if (isLockOn == true)
+        {
             LookAtTarget(lockOnTargetPos);
+        }
 
         playerAction.Update(position, forward);
-        // 攻撃中、かつまだヒットしていない時だけ武器判定true
-        if (state == PlayerState::Attack && isAttackHit == false)
+
+        // 攻撃が終わった瞬間
+        if (wasAttack == true && playerAction.IsAttack() == false)
         {
-            weapon.SetAttackColliderActive(true);
-        }        animationManager.Update();
-        MV1SetPosition(modelHandle, position);
+
+            rootMotion.End(modelHandle, position);
+
+            weapon.SetAttackColliderActive(false);
+            isAttackHit = true;
+
+            state = PlayerState::Idle;
+
+            if (isLockOn == true)
+            {
+                animationManager.ChangeAnim(AnimationType::LockOnIdle);
+            }
+            else
+            {
+                animationManager.ChangeAnim(AnimationType::Idle);
+            }
+
+            animationManager.Update();
+
+            MV1SetPosition(modelHandle, position);
+            UpdateCollider();
+            weapon.Update();
+
+            return;
+        }
+
+        animationManager.Update();
+
+        if (state == PlayerState::Attack && isAttackRootMotion == true)
+        {
+            rootMotion.Update(modelHandle, position);
+            
+        }
+        else
+        {
+            MV1SetPosition(modelHandle, position);
+        }
+
         UpdateCollider();
         weapon.Update();
 
+        if (state == PlayerState::Attack && isAttackHit == false)
+        {
+            weapon.SetAttackColliderActive(true);
+        }
+        else
+        {
+            weapon.SetAttackColliderActive(false);
+        }
+
         return;
     }
-    //攻撃
+
+    // 攻撃
     if (inputManager.IsButtonDown(InputManager::PadButton::X))
     {
         if (isLockOn == true)
+        {
             LookAtTarget(lockOnTargetPos);
-        
+        }
+
         state = PlayerState::Attack;
         animationManager.ChangeAnim(AnimationType::Attack);
 
         playerAction.StartAttack(position, forward);
-        // 新しい攻撃なので、まだ当たっていない状態に戻す
+
         isAttackHit = false;
-		// 攻撃開始フレームから攻撃判定をtrue
+
+        rootMotion.Start(modelHandle, position);
+
+
         weapon.SetAttackColliderActive(true);
 
         animationManager.Update();
-        MV1SetPosition(modelHandle, position);
+
+
         UpdateCollider();
         weapon.Update();
 
         return;
     }
-    //回避
+
+    // 回避
     if (inputManager.IsButtonDown(InputManager::PadButton::B))
     {
         state = PlayerState::Avoid;
@@ -169,6 +260,7 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
         {
             position.x += moveInput.x * 80.0f;
             position.z += moveInput.z * 80.0f;
+
             if (isLockOn == false)
             {
                 forward = moveDir;
@@ -178,19 +270,19 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
                 LookAtTarget(lockOnTargetPos);
             }
         }
-        // 回避では攻撃判定を出さない
+
         weapon.SetAttackColliderActive(false);
-        MV1SetPosition(modelHandle, position);
-		// 回避中のコライダー更新
-        UpdateCollider();
-		// 回避中のアニメーション更新
+
         animationManager.Update();
-		// 回避中の武器の更新
+
+        MV1SetPosition(modelHandle, position);
+        UpdateCollider();
         weapon.Update();
 
         return;
     }
-    //ジャンプ
+
+    // ジャンプ
     if (inputManager.IsButtonDown(InputManager::PadButton::A) && isJumping == false)
     {
         isJumping = true;
@@ -200,7 +292,6 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
         animationManager.ChangeAnim(AnimationType::Jump);
     }
 
-    // 移動速度
     float speed = walkSpeed;
 
     if (inputManager.IsButton(InputManager::PadButton::LB) && isMove == true)
@@ -213,7 +304,6 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
 
     position = VAdd(position, velocity);
 
-    // ジャンプ処理
     if (isJumping == true)
     {
         position.y += verticalVelocity;
@@ -228,20 +318,20 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
             animationManager.ChangeAnim(AnimationType::Jump);
         }
         else
+        {
             animationManager.ChangeAnim(AnimationType::Jump);
+        }
     }
     else
     {
         if (isLockOn == true)
         {
-            // ロックオン中は常に敵の方向を向く
             LookAtTarget(lockOnTargetPos);
 
             if (isMove == true)
             {
                 state = PlayerState::Walk;
 
-                // 左右入力が強いなら横移動アニメーション
                 if (fabsf(moveInput.x) > fabsf(moveInput.z))
                 {
                     animationManager.ChangeAnim(AnimationType::LockOnLateralMove);
@@ -278,15 +368,14 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
                 animationManager.ChangeAnim(AnimationType::Idle);
             }
         }
-    }   
+    }
+
     animationManager.Update();
 
-    // ロックオン中は敵の方向を向く
     if (isLockOn == true)
     {
         LookAtTarget(lockOnTargetPos);
     }
-    // 通常時は移動方向を向く
     else if (isMove == true)
     {
         forward = moveDir;
@@ -296,21 +385,43 @@ void Player::Update(const InputManager& inputManager, VECTOR cameraForward, VECT
 
         MV1SetRotationXYZ(
             modelHandle,
-            VGet(0.0f, angleY + modelOffset, 0.0f));
-    } 
+            VGet(0.0f, angleY + modelOffset, 0.0f)
+        );
+    }
+
     MV1SetPosition(modelHandle, position);
     UpdateCollider();
     weapon.Update();
 }
+
 void Player::UpdateCollider()
 {
-	//プレイヤーコライダーの位置を更新
-    capsuleCollider.SetPosition(VGet(position.x, position.y + 200.0f, position.z));
+    if (playerAction.IsAttack() == true)
+    {
+        VECTOR hipsPos = rootMotion.GetHipsWorldPosition(modelHandle, position);
+
+        capsuleCollider.SetPosition(
+            VGet(
+                hipsPos.x,
+                position.y + 200.0f,
+                hipsPos.z
+            )
+        );
+
+        return;
+    }
+
+    capsuleCollider.SetPosition(
+        VGet(position.x, position.y + 200.0f, position.z)
+    );
 }
+
 void Player::Draw()
 {
     if (modelHandle != -1)
+    {
         CharacterBase::Draw();
+    }
 
     weapon.Draw();
 }
@@ -328,10 +439,7 @@ void Player::Release()
 
     CharacterBase::Release();
 }
-/// <summary>
-/// 指定した座標の方向を向く
-/// </summary>
-/// <param name="targetPos"></param>
+
 void Player::LookAtTarget(VECTOR targetPos)
 {
     VECTOR direction;
@@ -353,7 +461,6 @@ void Player::LookAtTarget(VECTOR targetPos)
     direction.x /= length;
     direction.z /= length;
 
-    // 攻撃方向にも使えるように forward を更新
     forward = direction;
 
     if (modelHandle != -1)
@@ -370,19 +477,163 @@ void Player::LookAtTarget(VECTOR targetPos)
         );
     }
 }
-// 攻撃判定のコライダーの数を取得
+
+VECTOR Player::GetHipsOffsetFromBase(VECTOR basePosition)
+{
+    if (modelHandle == -1 || hipsFrameIndex == -1)
+    {
+        return VGet(0.0f, 0.0f, 0.0f);
+    }
+
+    MATRIX hipsMatrix = MV1GetFrameLocalWorldMatrix(modelHandle, hipsFrameIndex);
+
+    VECTOR hipsPos = VGet(
+        hipsMatrix.m[3][0],
+        hipsMatrix.m[3][1],
+        hipsMatrix.m[3][2]
+    );
+
+    VECTOR offset;
+
+    offset.x = hipsPos.x - basePosition.x;
+    offset.y = 0.0f;
+    offset.z = hipsPos.z - basePosition.z;
+
+    return offset;
+}
+
+VECTOR Player::GetHipsWorldPosition()
+{
+    if (modelHandle == -1 || hipsFrameIndex == -1)
+    {
+        return position;
+    }
+
+    MATRIX hipsMatrix = MV1GetFrameLocalWorldMatrix(modelHandle, hipsFrameIndex);
+
+    VECTOR hipsPos = VGet(
+        hipsMatrix.m[3][0],
+        hipsMatrix.m[3][1],
+        hipsMatrix.m[3][2]
+    );
+
+    return hipsPos;
+}
+
+void Player::StartAttackRootMotion()
+{
+    if (modelHandle == -1 || hipsFrameIndex == -1)
+    {
+        return;
+    }
+
+    isAttackRootMotion = true;
+
+    attackRootStartPosition = position;
+
+    hasAttackRootMoveDir = false;
+    attackRootMoveDir = VGet(0.0f, 0.0f, 1.0f);
+
+    MV1SetPosition(modelHandle, attackRootStartPosition);
+
+    attackRootStartHipsOffset = GetHipsOffsetFromBase(attackRootStartPosition);
+    attackRootPrevHipsOffset = attackRootStartHipsOffset;
+}
+
+void Player::UpdateAttackRootMotion()
+{
+    if (isAttackRootMotion == false)
+    {
+        return;
+    }
+
+    if (modelHandle == -1 || hipsFrameIndex == -1)
+    {
+        return;
+    }
+
+    // Hipsの移動量を調べるため、一度攻撃開始位置に置く
+    MV1SetPosition(modelHandle, attackRootStartPosition);
+
+    VECTOR currentHipsOffset = GetHipsOffsetFromBase(attackRootStartPosition);
+
+    VECTOR delta = VSub(currentHipsOffset, attackRootPrevHipsOffset);
+    delta.y = 0.0f;
+
+    float deltaLength = sqrtf(delta.x * delta.x + delta.z * delta.z);
+
+    if (hasAttackRootMoveDir == false && deltaLength > 0.5f)
+    {
+        attackRootMoveDir.x = delta.x / deltaLength;
+        attackRootMoveDir.y = 0.0f;
+        attackRootMoveDir.z = delta.z / deltaLength;
+
+        hasAttackRootMoveDir = true;
+    }
+
+    if (hasAttackRootMoveDir == true)
+    {
+        float moveDistance =
+            delta.x * attackRootMoveDir.x +
+            delta.z * attackRootMoveDir.z;
+
+        if (moveDistance < 0.0f)
+        {
+            moveDistance = 0.0f;
+        }
+
+        const float maxMovePerFrame = 5.0f;
+
+        if (moveDistance > maxMovePerFrame)
+        {
+            moveDistance = maxMovePerFrame;
+        }
+
+        const float rootMotionRate = 0.35f;
+
+        position.x += attackRootMoveDir.x * moveDistance * rootMotionRate;
+        position.z += attackRootMoveDir.z * moveDistance * rootMotionRate;
+    }
+
+    attackRootPrevHipsOffset = currentHipsOffset;
+
+    // 最後は必ずpositionにモデルを置く
+    MV1SetPosition(modelHandle, position);
+}
+
+void Player::EndAttackRootMotion()
+{
+    if (modelHandle != -1 && hipsFrameIndex != -1)
+    {
+        VECTOR finalHipsPos = GetHipsWorldPosition();
+
+        // 攻撃開始時のHipsオフセットを引いて、
+        // Idleに戻った時も見た目が同じ場所に来るようにする
+        position.x = finalHipsPos.x - attackRootStartHipsOffset.x;
+        position.z = finalHipsPos.z - attackRootStartHipsOffset.z;
+    }
+
+    isAttackRootMotion = false;
+    hasAttackRootMoveDir = false;
+
+    MV1SetPosition(modelHandle, position);
+
+    UpdateCollider();
+    weapon.Update();
+}
+
 int Player::GetAttackColliderCount() const
 {
     return weapon.GetAttackColliderCount();
 }
 
-// 攻撃判定のコライダーを取得
 SphereCollider* Player::GetAttackCollider(int index)
 {
     return weapon.GetAttackCollider(index);
-}// 攻撃判定のコライダーを無効化
+}
+
 void Player::DisableAttackCollider()
 {
-	isAttackHit = true;
+    isAttackHit = true;
     weapon.SetAttackColliderActive(false);
 }

@@ -1,5 +1,11 @@
 #include "CharacterManager.h"
 
+namespace
+{
+    const int FOCUS_HIT_REQUIRED = 2;   // 同じ敵に2回当てたらFocus
+    const int FOCUS_HIT_KEEP_TIME = 90; // 90フレーム以内なら連続ヒット扱い
+}
+
 CharacterManager::CharacterManager()
 {
 }
@@ -16,6 +22,13 @@ void CharacterManager::Init()
 
     enemyManager.Init();
     lockOnManager.Init();
+    battlePhase = BattlePhase::Field;
+
+    focusCandidateEnemy = nullptr;
+    focusEnemy = nullptr;
+
+    focusHitCount = 0;
+    focusHitTimer = 0;
 }
 
 void CharacterManager::Update(
@@ -33,6 +46,8 @@ void CharacterManager::Update(
             enemyManager
         );
     }
+    // Focusフェーズ更新
+    FocusPhase();
 
     // ロックオン情報をPlayerへ渡す
     if (player != nullptr)
@@ -103,8 +118,17 @@ void CharacterManager::Update(
 
             if (enemy != nullptr && player != nullptr)
             {
+                EnemyBase* hitEnemy = dynamic_cast<EnemyBase*>(enemy);
+
                 enemy->Damage(player->GetAttack());
                 player->DisableAttackCollider();
+
+                // 敵が生きている場合だけFocus用ヒットとして数える
+                if (hitEnemy != nullptr && hitEnemy->IsDead() == false)
+                {
+                    RegisterFocusHit(hitEnemy);
+                }
+
                 break;
             }
         }
@@ -142,6 +166,31 @@ void CharacterManager::Update(
 
                 break;
             }
+        }
+    }
+}
+
+void CharacterManager::FocusPhase()
+{
+    // Focus候補のヒットカウント時間
+    if (focusHitTimer > 0)
+    {
+        focusHitTimer--;
+    }
+    else
+    {
+        focusHitCount = 0;
+        focusCandidateEnemy = nullptr;
+    }
+
+    // Focus中の対象が消えた・死んだら解除
+    if (battlePhase == BattlePhase::Focus)
+    {
+        if (focusEnemy == nullptr ||
+            enemyManager.ContainsEnemy(focusEnemy) == false ||
+            focusEnemy->IsDead() == true)
+        {
+            EndFocus();
         }
     }
 }
@@ -183,11 +232,82 @@ VECTOR CharacterManager::GetPlayerPosition() const
     return VGet(0.0f, 0.0f, 0.0f);
 }
 
+VECTOR CharacterManager::GetLockOnTargetPosition() const
+{
+    return lockOnManager.GetTargetPosition();
+}
+
 Player* CharacterManager::GetPlayer()
 {
     return player.get();
 }
+void CharacterManager::RegisterFocusHit(EnemyBase* hitEnemy)
+{
+    if (hitEnemy == nullptr)
+    {
+        return;
+    }
 
+    // すでにFocus中なら、新しくカウントしない
+    if (battlePhase == BattlePhase::Focus)
+    {
+        return;
+    }
+
+    // 同じ敵ならカウント継続
+    if (focusCandidateEnemy == hitEnemy)
+    {
+        focusHitCount++;
+    }
+    else
+    {
+        focusCandidateEnemy = hitEnemy;
+        focusHitCount = 1;
+    }
+
+    focusHitTimer = FOCUS_HIT_KEEP_TIME;
+
+    if (focusHitCount >= FOCUS_HIT_REQUIRED)
+    {
+        StartFocus(hitEnemy);
+    }
+}
+void CharacterManager::StartFocus(EnemyBase* enemy)
+{
+    if (enemy == nullptr)
+    {
+        return;
+    }
+
+    battlePhase = BattlePhase::Focus;
+
+    focusEnemy = enemy;
+
+    focusCandidateEnemy = nullptr;
+    focusHitCount = 0;
+    focusHitTimer = 0;
+
+    // Focus対象を強制ロックオン
+    lockOnManager.LockOn(enemy);
+}
+
+void CharacterManager::EndFocus()
+{
+    battlePhase = BattlePhase::Field;
+
+    focusEnemy = nullptr;
+    focusCandidateEnemy = nullptr;
+
+    focusHitCount = 0;
+    focusHitTimer = 0;
+
+    lockOnManager.Clear();
+}
+
+bool CharacterManager::IsFocusPhase() const
+{
+    return battlePhase == BattlePhase::Focus;
+}
 bool CharacterManager::IsAllEnemyDead() const
 {
     return enemyManager.IsAllEnemyDead();

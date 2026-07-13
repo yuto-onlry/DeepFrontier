@@ -30,7 +30,7 @@ void AnimationPreset::SetAnimationPlayer(AnimationManager& animManager, int mode
 
     animManager.LoadAnimModelForType(
         AnimationType::Attack,
-        "../Animation/Player/Attack.mv1",
+        "../Animation/Player/Attack2.mv1",
         0
     );
 
@@ -75,7 +75,11 @@ void AnimationPreset::SetAnimationPlayer(AnimationManager& animManager, int mode
         "../Animation/Player/LockOnIdle.mv1",
         0
     );
-
+    animManager.LoadAnimModelForType(
+        AnimationType::LockOnWalk,
+        "../Animation/Player/LockOnWalk.mv1",
+        0
+    );
     animManager.LoadAnimModelForType(
         AnimationType::LockOnLateralMove,
         "../Animation/Player/LockOnLateralMove.mv1",

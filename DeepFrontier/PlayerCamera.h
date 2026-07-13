@@ -16,9 +16,15 @@ private:
     float angleX;     // 縦回転
 	float rotateSpeed;  // 回転速度
 
+	VECTOR smoothPlayerPosition;        // プレイヤーの位置を滑らかに追従させるための変数
+	bool isSmoothPlayerPositionInit;    // プレイヤーの位置を滑らかに追従させるための初期化フラグ
+
 public:
     PlayerCamera();
     ~PlayerCamera();
+private:
+    void NormalCamera(VECTOR playerPos, VECTOR rightStick);
+    void LockOnCamera(VECTOR playerPos, VECTOR lockOnTargetPos);
 public:
     //前方向ベクトルを取得
     VECTOR GetForward() const;
@@ -26,6 +32,9 @@ public:
     VECTOR GetRight() const;
 public:
     void Init();
-    void Update(VECTOR playerPos, VECTOR rightStick);
+    void Update(VECTOR playerPos, VECTOR rightStick, bool isLockOn, VECTOR lockOnTargetPos);
     void Apply();
+private:
+	// プレイヤーの位置を滑らかに追従させる
+    VECTOR SmoothPlayerPosition(VECTOR playerPos);
 };

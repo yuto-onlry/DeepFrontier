@@ -47,7 +47,7 @@ public:
      ~AnimationManager();
 
     void Init(int model);
-    void Update();
+    void Update();                         
     void Release();
     // アニメーションタイプごとに別MV1を読み込む用
     bool LoadAnimModelForType(AnimationType type, const char* filePath, int animIndex);
@@ -58,5 +58,4 @@ public:
     // アニメーション番号を設定するセッター
     void SetAnimIndex(AnimationType type, int animIndex);
     void SetSpeed(float speed);
-	void SetAnimTime(float time);
 };

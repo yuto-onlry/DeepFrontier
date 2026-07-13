@@ -12,7 +12,7 @@ LittleEnemy::~LittleEnemy()
 
 void LittleEnemy::Init()
 {
-    maxHp = 20;
+    maxHp = 50;
     hp = maxHp;
     attack = 3;
     defense = 0;

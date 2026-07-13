@@ -105,6 +105,21 @@ bool LockOnManager::IsLockOn() const
 {
     return isLockOn;
 }
+/// <summary>
+/// 指定された敵をロックオンする
+/// </summary>
+/// <param name="enemy"></param>
+void LockOnManager::LockOn(EnemyBase* enemy)
+{
+    if (enemy == nullptr)
+    {
+        Clear();
+        return;
+    }
+
+    targetEnemy = enemy;
+    isLockOn = true;
+}
 
 /// <summary>
 /// ロックオン対象の敵を取得する

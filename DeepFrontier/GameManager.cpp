@@ -71,9 +71,21 @@ void GameManager::UpdatePlaying()
     {
         VECTOR rightStick = inputManager.GetRightStick();
 
+        bool useFocusCamera = false;
+        VECTOR lockOnTargetPos = VGet(0.0f, 0.0f, 0.0f);
+
+        if (characterManager.IsFocusPhase() == true &&
+            characterManager.GetLockOnTarget() != nullptr)
+        {
+                useFocusCamera = true;
+                lockOnTargetPos = characterManager.GetLockOnTargetPosition();
+        }
+
         playerCamera.Update(
             characterManager.GetPlayer()->GetPosition(),
-            rightStick
+            rightStick,
+            useFocusCamera,
+            lockOnTargetPos
         );
     }
 }
