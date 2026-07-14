@@ -2,16 +2,22 @@
 #include "CharacterBase.h"
 #include "AnimationManager.h"
 #include "SphereCollider.h"
+#include "EnemyReaction.h"
 
 /// エネミーの状態
 enum class EnemyState
 {
-	Idle,   // 待機
-	Chase,  // 追跡
-	Wait,   // プレイヤーとの距離を保つ
-	Attack, // 攻撃
-	Damage, // ダメージ
-	Dead    // 死亡
+    Idle,          // 待機
+    Chase,         // 追跡
+    Wait,          // プレイヤーとの距離を保つ
+    Attack,        // 攻撃
+    Damage,        // ダメージ
+
+    KnockBack,     // 軽い吹っ飛び
+    KnockbackDown, // 吹っ飛びダウン
+    GetUp,         // 起き上がり
+
+    Dead           // 死亡
 };
 
 /// <summary>
@@ -20,30 +26,28 @@ enum class EnemyState
 class EnemyBase : public CharacterBase
 {
 protected:
-    // アニメーション管理
     AnimationManager animationManager;
 
-    float moveSpeed;      // 移動速度
-    float attackRange;    // 攻撃範囲
+    float moveSpeed;
+    float attackRange;
 
-    // 攻撃判定用のコライダー
     SphereCollider attackCollider;
-	// 攻撃中かどうかのフラグ
+
     bool isAttacking;
     bool isAttackHit;
-	// 攻撃タイマーとクールタイム
+
     int attackTimer;
     int attackCoolTime;
-	// プレイヤーとの距離を保つための待機タイマー
+
     int waitMoveSign;
     int waitMoveTimer;
-	int attackReserveCoolTime;  // 攻撃予約のクールタイム
-	// エネミーの状態
+
+    int attackReserveCoolTime;
+
     EnemyState state;
 private:
-    bool isKnockBack;
-    VECTOR knockBackVelocity;
-    int knockBackTimer;
+    EnemyReaction enemyReaction;
+
 
 public:
     EnemyBase();
@@ -51,7 +55,6 @@ public:
 
     void Init() override;
 
-    // playerの座標と攻撃許可を受け取る
     virtual void Update(VECTOR playerPos, bool canAttack);
 
     void UpdateCollider();
@@ -68,10 +71,8 @@ public:
     void DisableAttackCollider();
 
 protected:
-    // 初期化系
     void InitAttackCollider();
 
-    // 状態更新系
     void Dead();
     void UpdateCoolTime();
 
@@ -83,14 +84,26 @@ protected:
 
     void StartAttack();
     void Attack(VECTOR playerPos);
+    void StopAttack();
 
     void AnimationAndCollider();
-public:
-    void StartKnockBack(VECTOR direction, float power, int time);
+    void SetKnockDownRotation(VECTOR knockDir);
 
 public:
-    // 判定系
+    // 軽いノックバック
+    void StartKnockBack(VECTOR direction, float power, int time);
+
+    // 吹っ飛び + ダウン
+    void StartKnockDown(
+        VECTOR direction,
+        float horizontalPower,
+        float verticalPower,
+        int knockbackDownTime,
+        int getUpTime
+    );
+
+public:
     bool IsInAttackRange(VECTOR playerPos);
-	bool CanAttack() const;
-    bool IsKnockBack() const;
+    bool CanAttack() const;
+    bool IsHitReaction() const;
 };

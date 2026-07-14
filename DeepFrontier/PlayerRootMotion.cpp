@@ -139,6 +139,19 @@ VECTOR PlayerRootMotion::GetHipsWorldPosition(
     );
 }
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="correction"></param>
+void PlayerRootMotion::PositionCorrection(VECTOR correction)
+{
+    if (isActive == false)
+    {
+        return;
+    }
+
+    attackRootStartPosition = VAdd(attackRootStartPosition, correction);
+}
 VECTOR PlayerRootMotion::GetHipsOffsetFromBase(
     int modelHandle,
     VECTOR basePosition

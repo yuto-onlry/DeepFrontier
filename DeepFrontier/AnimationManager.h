@@ -53,8 +53,9 @@ public:
     void Init(int model);
     void Update();                         
     void Release();
-    // アニメーションタイプごとに別MV1を読み込む用
+    // アニメーションタイプごとに別モデルを読み込む用
     bool LoadAnimModelForType(AnimationType type, const char* filePath, int animIndex);
+	// アニメーションを切り替える
     void ChangeAnim(AnimationType type);
     bool LoadAnimModel(const char* filePath);
 

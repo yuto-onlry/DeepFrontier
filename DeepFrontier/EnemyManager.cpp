@@ -2,6 +2,7 @@
 #include "LittleEnemy.h"
 #include <cmath>
 
+
 EnemyManager::EnemyManager()
     : maxEnemyAttackCount(2)
 {
@@ -275,6 +276,76 @@ EnemyBase* EnemyManager::GetNearestEnemy(VECTOR playerPos, float searchRange) co
     return nearestEnemy;
 }
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="player"></param>
+void EnemyManager::ResolvePlayer(Player* player)
+{
+    if (player == nullptr)
+    {
+        return;
+    }
+
+    VECTOR playerPos = player->GetPosition();
+
+    const float playerRadius = 50.0f;
+    const float enemyRadius = 50.0f;
+
+    // 少し余裕を持たせる
+    const float minDistance = playerRadius + enemyRadius + 20.0f;
+
+    for (auto& enemy : enemies)
+    {
+        if (enemy == nullptr)
+        {
+            continue;
+        }
+
+        if (enemy->IsDead() == true)
+        {
+            continue;
+        }
+
+        // ダウン中の敵をすり抜けたい場合はここで除外
+        if (enemy->IsDead() == true)
+        {
+            continue;
+        }
+
+        VECTOR enemyPos = enemy->GetPosition();
+
+        float dx = playerPos.x - enemyPos.x;
+        float dz = playerPos.z - enemyPos.z;
+
+        float distanceSq = dx * dx + dz * dz;
+
+        if (distanceSq <= 0.0001f)
+        {
+            dx = 1.0f;
+            dz = 0.0f;
+            distanceSq = 1.0f;
+        }
+
+        float distance = sqrtf(distanceSq);
+
+        if (distance >= minDistance)
+        {
+            continue;
+        }
+
+        float pushDistance = minDistance - distance;
+
+        dx /= distance;
+        dz /= distance;
+
+        // PlayerをEnemyから離す
+        playerPos.x += dx * pushDistance;
+        playerPos.z += dz * pushDistance;
+    }
+
+    player->SetPositionForCollision(playerPos);
+}
 bool EnemyManager::ContainsEnemy(EnemyBase* enemy) const
 {
     return ExistsEnemy(enemy);

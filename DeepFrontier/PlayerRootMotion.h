@@ -28,6 +28,7 @@ public:
     bool IsActive() const;
 
     VECTOR GetHipsWorldPosition(int modelHandle, VECTOR defaultPosition) const;
+    void PositionCorrection(VECTOR correction);
 
 private:
     VECTOR GetHipsOffsetFromBase(int modelHandle, VECTOR basePosition) const;

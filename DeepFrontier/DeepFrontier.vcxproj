@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -159,6 +159,8 @@
     <ClCompile Include="CollisionManager.cpp" />
     <ClCompile Include="EnemyBase.cpp" />
     <ClCompile Include="EnemyManager.cpp" />
+    <ClCompile Include="EnemyReaction.cpp" />
+    <ClCompile Include="EnemyRootMotion.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="HpGauge.cpp" />
     <ClCompile Include="InputManager.cpp" />
@@ -187,6 +189,8 @@
     <ClInclude Include="CollisionManager.h" />
     <ClInclude Include="EnemyBase.h" />
     <ClInclude Include="EnemyManager.h" />
+    <ClInclude Include="EnemyReaction.h" />
+    <ClInclude Include="EnemyRootMotion.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="HpGauge.h" />
     <ClInclude Include="InputManager.h" />

@@ -9,20 +9,22 @@ EnemyBase::EnemyBase()
     isAttackHit(false),
     attackTimer(0),
     attackCoolTime(0),
-	attackReserveCoolTime(0),
     waitMoveSign(1),
     waitMoveTimer(0),
+    attackReserveCoolTime(0),
     state(EnemyState::Idle),
-	isKnockBack(false),
-    knockBackVelocity(VGet(0.0f, 0.0f, 0.0f)),
-    knockBackTimer(0)
+    enemyReaction()
 {
+}
 
-}EnemyBase::~EnemyBase()
+EnemyBase::~EnemyBase()
 {
     Release();
 }
 
+/// <summary>
+/// 初期値
+/// </summary>
 void EnemyBase::Init()
 {
     hp = 0;
@@ -33,22 +35,21 @@ void EnemyBase::Init()
     velocity = VGet(0.0f, 0.0f, 0.0f);
 
     moveSpeed = 5.0f;
-    attackRange = 80.0f;
+    attackRange = 160.0f;
+
     attackReserveCoolTime = 0;
 
-    isKnockBack = false;
-    knockBackVelocity = VGet(0.0f, 0.0f, 0.0f);
-    knockBackTimer = 0;
+    enemyReaction.Init();
 
     modelHandle = -1;
     isDead = false;
+
     waitMoveSign = (GetRand(1) == 0) ? -1 : 1;
     waitMoveTimer = 60 + GetRand(60);
+
     state = EnemyState::Idle;
 }
-/// <summary>
-/// 攻撃判定の初期化
-/// </summary>
+
 void EnemyBase::InitAttackCollider()
 {
     isAttacking = false;
@@ -59,10 +60,10 @@ void EnemyBase::InitAttackCollider()
 
     attackCollider.SetTag(ColliderTag::EnemyAttack);
     attackCollider.SetOwner(this);
-	// 攻撃判定の大きさ
     attackCollider.SetRadius(55.0f);
     attackCollider.SetActive(false);
 }
+
 void EnemyBase::Update(VECTOR playerPos, bool canAttack)
 {
     if (isDead == true)
@@ -72,31 +73,16 @@ void EnemyBase::Update(VECTOR playerPos, bool canAttack)
         return;
     }
 
-    // 吹っ飛び中
-    if (isKnockBack == true)
+    if (enemyReaction.IsActive() == true)
     {
-        position = VAdd(position, knockBackVelocity);
+        enemyReaction.Update(
+            modelHandle,
+            position,
+            animationManager,
+            attackCollider
+        );
 
-        knockBackVelocity.x *= 0.90f;
-        knockBackVelocity.z *= 0.90f;
-
-        knockBackTimer--;
-
-        if (knockBackTimer <= 0)
-        {
-            isKnockBack = false;
-            knockBackVelocity = VGet(0.0f, 0.0f, 0.0f);
-
-            state = EnemyState::Idle;
-            animationManager.ChangeAnim(AnimationType::Idle);
-        }
-
-        animationManager.Update();
-
-        MV1SetPosition(modelHandle, position);
         UpdateCollider();
-
-        attackCollider.SetActive(false);
 
         return;
     }
@@ -110,7 +96,6 @@ void EnemyBase::Update(VECTOR playerPos, bool canAttack)
         return;
     }
 
-    // ここは必ず呼ぶ
     DecideState(playerPos, canAttack);
 
     switch (state)
@@ -142,9 +127,6 @@ void EnemyBase::Update(VECTOR playerPos, bool canAttack)
     AnimationAndCollider();
 }
 
-/// <summary>
-/// 攻撃判定の更新
-/// </summary>
 void EnemyBase::UpdateCollider()
 {
     if (isDead == true)
@@ -152,18 +134,18 @@ void EnemyBase::UpdateCollider()
         capsuleCollider.SetActive(false);
         return;
     }
-	// エネミーコライダーの位置を更新
-    capsuleCollider.SetPosition(VGet(position.x, position.y + 150.0f, position.z));
+
+    VECTOR colliderPos = enemyReaction.GetBodyColliderPosition(
+        modelHandle,
+        position
+    );
+
+    capsuleCollider.SetPosition(colliderPos);
 }
-/// <summary>
-/// 攻撃中の更新
-/// </summary>
-/// <param name="playerPos"></param>
+
 void EnemyBase::Attack(VECTOR playerPos)
 {
-	// 攻撃アニメーションのフレーム数
     const int attackDuration = 30;
-	// 攻撃アニメーションの経過フレーム数
     int startFrame = attackDuration - attackTimer;
 
     VECTOR direction;
@@ -171,7 +153,10 @@ void EnemyBase::Attack(VECTOR playerPos)
     direction.y = 0.0f;
     direction.z = playerPos.z - position.z;
 
-    float length = std::sqrt(direction.x * direction.x + direction.z * direction.z);
+    float length = std::sqrt(
+        direction.x * direction.x +
+        direction.z * direction.z
+    );
 
     if (length > 0.0f)
     {
@@ -183,74 +168,77 @@ void EnemyBase::Attack(VECTOR playerPos)
     {
         float angleY = atan2f(direction.x, direction.z);
         float modelOffset = DX_PI_F;
-		// 攻撃中はプレイヤーの方向を向く
-        MV1SetRotationXYZ(modelHandle, VGet(0.0f, angleY + modelOffset, 0.0f));
+
+        MV1SetRotationXYZ(
+            modelHandle,
+            VGet(0.0f, angleY + modelOffset, 0.0f)
+        );
     }
 
     VECTOR attackPos;
     attackPos.x = position.x + direction.x * 80.0f;
     attackPos.y = position.y + 150.0f;
     attackPos.z = position.z + direction.z * 80.0f;
+
     attackCollider.SetPosition(attackPos);
-	// 攻撃判定の有効化フレーム範囲
+
     const int hitStartFrame = 0;
-	// 攻撃判定の無効化フレーム範囲
     const int hitEndFrame = 6;
-	// 攻撃判定の有効化・無効化
-    if (startFrame >= hitStartFrame && startFrame <= hitEndFrame && isAttackHit == false)
+
+    if (startFrame >= hitStartFrame &&
+        startFrame <= hitEndFrame &&
+        isAttackHit == false)
+    {
         attackCollider.SetActive(true);
+    }
     else
+    {
         attackCollider.SetActive(false);
+    }
 
     attackTimer--;
-	// 攻撃アニメーション終了後の処理
+
     if (attackTimer <= 0)
     {
         isAttacking = false;
         attackCollider.SetActive(false);
+
         state = EnemyState::Idle;
 
-		// 攻撃後のクールタイムを設定
         attackReserveCoolTime = 120;
 
-		// 攻撃後のクールタイムを設定
         animationManager.SetSpeed(0.5f);
-        animationManager.SetSpeed(0.5f);
-
-        if (waitMoveSign < 0)
-        {
-            animationManager.ChangeAnim(AnimationType::MoveLeft);
-        }
-        else
-        {
-            animationManager.ChangeAnim(AnimationType::MoveRight);
-        }
         animationManager.ChangeAnim(AnimationType::Idle);
     }
 }
-/// <summary>
-/// 攻撃開始
-/// </summary>
+
+void EnemyBase::StopAttack()
+{
+    isAttacking = false;
+    isAttackHit = false;
+
+    attackTimer = 0;
+    attackCollider.SetActive(false);
+}
+
 void EnemyBase::StartAttack()
 {
     state = EnemyState::Attack;
+
     isAttacking = true;
     isAttackHit = false;
-	// 攻撃タイマーとクールタイムをリセット
+
     attackTimer = 30;
-	// 攻撃後のクールタイムを設定
     attackCoolTime = 30;
-	// 攻撃中は移動しないように速度をリセット
+
     velocity = VGet(0.0f, 0.0f, 0.0f);
-	// 攻撃判定を無効化
+
     attackCollider.SetActive(false);
-	// 攻撃アニメーションを再生
+
     animationManager.SetSpeed(1.0f);
     animationManager.ChangeAnim(AnimationType::Attack);
 }
-/// <summary>
-/// 攻撃判定のコライダーを取得
-/// </summary>
+
 SphereCollider* EnemyBase::GetAttackCollider()
 {
     return &attackCollider;
@@ -258,50 +246,49 @@ SphereCollider* EnemyBase::GetAttackCollider()
 
 void EnemyBase::StartKnockBack(VECTOR direction, float power, int time)
 {
-    if (isDead == true)
+    if (isDead == true || enemyReaction.IsActive() == true)
     {
         return;
     }
 
-    direction.y = 0.0f;
-
-    float length = sqrtf(
-        direction.x * direction.x +
-        direction.z * direction.z
+    StopAttack();
+    SetKnockDownRotation(direction);
+    enemyReaction.StartKnockBack(
+        direction,
+        power,
+        time,
+        animationManager
     );
-
-    if (length <= 0.001f)
-    {
-        return;
-    }
-
-    direction.x /= length;
-    direction.z /= length;
-
-    isKnockBack = true;
-    knockBackTimer = time;
-
-    knockBackVelocity.x = direction.x * power;
-    knockBackVelocity.y = 0.0f;
-    knockBackVelocity.z = direction.z * power;
-
-    isAttacking = false;
-    isAttackHit = false;
-    attackTimer = 0;
-    attackCollider.SetActive(false);
-
-    state = EnemyState::Damage;
-    animationManager.ChangeAnim(AnimationType::Damage);
 }
 
-/// <summary>
-/// ダメージ処理
-/// </summary>
-/// <param name="damage"></param>
+void EnemyBase::StartKnockDown(VECTOR direction,float horizontalPower,float verticalPower,int knockbackDownTime,int getUpTime)
+{
+    if (isDead == true || enemyReaction.IsActive() == true)
+    {
+        return;
+    }
+
+    StopAttack();
+
+    enemyReaction.StartKnockDown(
+        modelHandle,
+        position,
+        direction,
+        horizontalPower,
+        verticalPower,
+        knockbackDownTime,
+        getUpTime,
+        animationManager
+    );
+}
+
+
 void EnemyBase::Damage(int damage)
 {
     if (isDead == true)
+    {
         return;
+    }
 
     hp -= damage;
 
@@ -310,9 +297,12 @@ void EnemyBase::Damage(int damage)
         hp = 0;
         isDead = true;
         state = EnemyState::Dead;
+
         capsuleCollider.SetActive(false);
+        attackCollider.SetActive(false);
     }
 }
+
 void EnemyBase::Dead()
 {
     velocity = VGet(0.0f, 0.0f, 0.0f);
@@ -335,6 +325,7 @@ void EnemyBase::UpdateCoolTime()
         attackReserveCoolTime--;
     }
 }
+
 void EnemyBase::DecideState(VECTOR playerPos, bool canAttack)
 {
     if (isDead == true)
@@ -343,14 +334,12 @@ void EnemyBase::DecideState(VECTOR playerPos, bool canAttack)
         return;
     }
 
-    // 攻撃権がない敵は、常に中距離待機・横移動
     if (canAttack == false)
     {
         state = EnemyState::Wait;
         return;
     }
 
-    // 攻撃権がある敵だけ、攻撃範囲まで追尾して攻撃する
     if (IsInAttackRange(playerPos) == true)
     {
         if (attackCoolTime <= 0)
@@ -367,6 +356,7 @@ void EnemyBase::DecideState(VECTOR playerPos, bool canAttack)
 
     state = EnemyState::Chase;
 }
+
 void EnemyBase::Idle()
 {
     velocity = VGet(0.0f, 0.0f, 0.0f);
@@ -437,19 +427,16 @@ void EnemyBase::Wait(VECTOR playerPos)
 
     float distance = std::sqrt(distanceSq);
 
-    // プレイヤーから敵への方向
     VECTOR dir;
     dir.x = dx / distance;
     dir.y = 0.0f;
     dir.z = dz / distance;
 
-    // プレイヤーの周りを回る横方向
     VECTOR sideDir;
     sideDir.x = -dir.z * (float)waitMoveSign;
     sideDir.y = 0.0f;
     sideDir.z = dir.x * (float)waitMoveSign;
 
-    // ときどき横移動方向を変える
     waitMoveTimer--;
 
     if (waitMoveTimer <= 0)
@@ -467,24 +454,20 @@ void EnemyBase::Wait(VECTOR playerPos)
 
     velocity = VGet(0.0f, 0.0f, 0.0f);
 
-    // 横移動は常に入れる
     velocity.x += sideDir.x * lateralSpeed;
     velocity.z += sideDir.z * lateralSpeed;
 
-    // 近すぎる場合は、離れる力を足す
     if (distance < keepDistance - margin)
     {
         velocity.x += dir.x * distanceAdjustSpeed;
         velocity.z += dir.z * distanceAdjustSpeed;
     }
-    // 遠すぎる場合は、近づく力を足す
     else if (distance > keepDistance + margin)
     {
         velocity.x += -dir.x * distanceAdjustSpeed;
         velocity.z += -dir.z * distanceAdjustSpeed;
     }
 
-    // 速度が速くなりすぎないように正規化
     float velocityLength = std::sqrt(
         velocity.x * velocity.x +
         velocity.z * velocity.z
@@ -502,9 +485,8 @@ void EnemyBase::Wait(VECTOR playerPos)
     position.x += velocity.x;
     position.z += velocity.z;
 
-    // 横移動アニメーション
     animationManager.SetSpeed(0.5f);
-	// 横移動の方向によってアニメーションを切り替える
+
     if (waitMoveSign < 0)
     {
         animationManager.ChangeAnim(AnimationType::MoveLeft);
@@ -514,7 +496,6 @@ void EnemyBase::Wait(VECTOR playerPos)
         animationManager.ChangeAnim(AnimationType::MoveRight);
     }
 
-    // プレイヤーの方向を見る
     if (modelHandle != -1)
     {
         float angleY = atan2f(-dir.x, -dir.z);
@@ -526,9 +507,7 @@ void EnemyBase::Wait(VECTOR playerPos)
         );
     }
 }
-/// <summary>
-/// アニメーションとコライダーの更新
-/// </summary>
+
 void EnemyBase::AnimationAndCollider()
 {
     animationManager.Update();
@@ -541,6 +520,45 @@ void EnemyBase::AnimationAndCollider()
     UpdateCollider();
 }
 
+void EnemyBase::SetKnockDownRotation(VECTOR knockDir)
+{
+    knockDir.y = 0.0f;
+
+    float length = sqrtf(
+        knockDir.x * knockDir.x +
+        knockDir.z * knockDir.z
+    );
+
+    if (length <= 0.001f)
+    {
+        return;
+    }
+
+    knockDir.x /= length;
+    knockDir.z /= length;
+
+    // knockDir は「プレイヤーから敵が離れる方向」
+    // 頭がプレイヤー側に来るなら、モデルの向きを反転させる
+    VECTOR faceDir;
+
+    faceDir.x = knockDir.x;
+    faceDir.y = 0.0f;
+    faceDir.z = knockDir.z;
+
+    float angleY = atan2f(faceDir.x, faceDir.z);
+
+    // Enemyモデルで普段使っている補正
+    float modelOffset = DX_PI_F;
+
+    if (modelHandle != -1)
+    {
+        MV1SetRotationXYZ(
+            modelHandle,
+            VGet(0.0f, angleY + modelOffset, 0.0f)
+        );
+    }
+}
+
 bool EnemyBase::IsInAttackRange(VECTOR playerPos)
 {
     float dx = playerPos.x - position.x;
@@ -550,17 +568,13 @@ bool EnemyBase::IsInAttackRange(VECTOR playerPos)
 
     return distance <= attackRange;
 }
-/// <summary>
-/// 攻撃判定のコライダーを無効化
-/// </summary>
+
 void EnemyBase::DisableAttackCollider()
 {
     isAttackHit = true;
     attackCollider.SetActive(false);
 }
-/// <summary>
-/// 描画
-/// </summary>
+
 void EnemyBase::Draw()
 {
     if (isDead == true)
@@ -575,21 +589,21 @@ void EnemyBase::Draw()
 
     attackCollider.DrawDebug();
 }
-/// <summary>
-/// リソース解放
-/// </summary>
+
 void EnemyBase::Release()
 {
     attackCollider.SetActive(false);
-	//攻撃判定のコライダーを解放
+
     animationManager.Release();
-	//モデルを解放
-    CharacterBase::Release();   
+
+    CharacterBase::Release();
 }
+
 bool EnemyBase::IsAttacking() const
 {
     return isAttacking;
 }
+
 bool EnemyBase::CanAttack() const
 {
     if (isDead == true)
@@ -604,11 +618,8 @@ bool EnemyBase::CanAttack() const
 
     return attackReserveCoolTime <= 0;
 }
-/// <summary>
-/// 吹っ飛び中かどうかの判定
-/// </summary>
-/// <returns></returns>
-bool EnemyBase::IsKnockBack() const
+
+bool EnemyBase::IsHitReaction() const
 {
-    return isKnockBack;
+    return enemyReaction.IsActive();
 }

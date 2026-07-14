@@ -65,7 +65,8 @@ void CharacterManager::Update(
 
     // 敵全体の更新
     enemyManager.Update(playerPos);
-
+    // PlayerがEnemyにめり込まないようにする
+    enemyManager.ResolvePlayer(player.get());
     // コライダー登録
     collisionManager.Clear();
 
@@ -120,7 +121,15 @@ void CharacterManager::Update(
             {
                 EnemyBase* hitEnemy = dynamic_cast<EnemyBase*>(enemy);
 
+                // すでに吹っ飛び・ダウン・起き上がり中なら、再度ヒットさせない
+                if (hitEnemy != nullptr && hitEnemy->IsHitReaction() == true)
+                {
+                    player->DisableAttackCollider();
+                    break;
+                }
+
                 enemy->Damage(player->GetAttack());
+
                 if (hitEnemy != nullptr && hitEnemy->IsDead() == false)
                 {
                     VECTOR knockDir;
@@ -134,13 +143,23 @@ void CharacterManager::Update(
                     // 2段目：軽く押す
                     if (comboIndex == 1)
                     {
-                        hitEnemy->StartKnockBack(knockDir, 8.0f, 15);
+                        hitEnemy->StartKnockBack(
+                            knockDir,
+                            8.0f,
+                            15
+                        );
                     }
 
-                    // 3段目：強く吹っ飛ばす
+                    // 3段目：吹っ飛び + ダウン
                     if (comboIndex == 2)
                     {
-                        hitEnemy->StartKnockBack(knockDir, 18.0f, 35);
+                        hitEnemy->StartKnockDown(
+                            knockDir,
+                            30.0f, // 横方向
+                            14.0f, // 上方向
+                            120,    // KnockbackDownアニメ全体の時間
+                            80     // GetUp時間
+                        );
                     }
 
                     RegisterFocusHit(hitEnemy);
@@ -151,7 +170,7 @@ void CharacterManager::Update(
             }
         }
 
-        // 敵攻撃 × プレイヤー
+        // 敵攻撃＋プレイヤー
         ColliderBase* enemyAttackCollider = nullptr;
         ColliderBase* playerCollider = nullptr;
 

@@ -509,6 +509,27 @@ SphereCollider* Player::GetAttackCollider(int index)
     return weapon.GetAttackCollider(index);
 }
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="newPosition"></param>
+void Player::SetPositionForCollision(VECTOR newPosition)
+{
+    VECTOR correction = VSub(newPosition, position);
+
+    position = newPosition;
+    //
+    rootMotion.PositionCorrection(correction);
+
+    if (modelHandle != -1)
+    {
+        MV1SetPosition(modelHandle, position);
+    }
+
+    UpdateCollider();
+    weapon.Update();
+}
+
 void Player::DisableAttackCollider()
 {
     isAttackHit = true;

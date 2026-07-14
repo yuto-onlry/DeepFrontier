@@ -1,5 +1,4 @@
 #pragma once
-
 #include "CharacterBase.h"
 #include "animationManager.h"
 #include "InputManager.h"
@@ -75,6 +74,7 @@ private:
 public:
     int GetAttackColliderCount() const;
     SphereCollider* GetAttackCollider(int index);
+    void SetPositionForCollision(VECTOR newPosition);
 public:
     int GetComboIndex() const;
 

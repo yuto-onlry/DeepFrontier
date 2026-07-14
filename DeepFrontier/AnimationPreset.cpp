@@ -130,6 +130,11 @@ void AnimationPreset::SetAnimationLittleEnemy(AnimationManager& animManager, int
         "../Animation/Enemy/KnockbackDown.mv1",
         0
     );
+    animManager.LoadAnimModelForType(
+        AnimationType::GetUp,
+        "../Animation/Enemy/GetUp.mv1",
+        0
+    );
 
 
 
