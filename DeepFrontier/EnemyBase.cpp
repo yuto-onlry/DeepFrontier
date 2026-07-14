@@ -12,7 +12,10 @@ EnemyBase::EnemyBase()
 	attackReserveCoolTime(0),
     waitMoveSign(1),
     waitMoveTimer(0),
-    state(EnemyState::Idle)
+    state(EnemyState::Idle),
+	isKnockBack(false),
+    knockBackVelocity(VGet(0.0f, 0.0f, 0.0f)),
+    knockBackTimer(0)
 {
 
 }EnemyBase::~EnemyBase()
@@ -32,6 +35,10 @@ void EnemyBase::Init()
     moveSpeed = 5.0f;
     attackRange = 80.0f;
     attackReserveCoolTime = 0;
+
+    isKnockBack = false;
+    knockBackVelocity = VGet(0.0f, 0.0f, 0.0f);
+    knockBackTimer = 0;
 
     modelHandle = -1;
     isDead = false;
@@ -65,6 +72,35 @@ void EnemyBase::Update(VECTOR playerPos, bool canAttack)
         return;
     }
 
+    // 吹っ飛び中
+    if (isKnockBack == true)
+    {
+        position = VAdd(position, knockBackVelocity);
+
+        knockBackVelocity.x *= 0.90f;
+        knockBackVelocity.z *= 0.90f;
+
+        knockBackTimer--;
+
+        if (knockBackTimer <= 0)
+        {
+            isKnockBack = false;
+            knockBackVelocity = VGet(0.0f, 0.0f, 0.0f);
+
+            state = EnemyState::Idle;
+            animationManager.ChangeAnim(AnimationType::Idle);
+        }
+
+        animationManager.Update();
+
+        MV1SetPosition(modelHandle, position);
+        UpdateCollider();
+
+        attackCollider.SetActive(false);
+
+        return;
+    }
+
     UpdateCoolTime();
 
     if (state == EnemyState::Attack)
@@ -74,6 +110,7 @@ void EnemyBase::Update(VECTOR playerPos, bool canAttack)
         return;
     }
 
+    // ここは必ず呼ぶ
     DecideState(playerPos, canAttack);
 
     switch (state)
@@ -104,6 +141,7 @@ void EnemyBase::Update(VECTOR playerPos, bool canAttack)
 
     AnimationAndCollider();
 }
+
 /// <summary>
 /// 攻撃判定の更新
 /// </summary>
@@ -217,6 +255,45 @@ SphereCollider* EnemyBase::GetAttackCollider()
 {
     return &attackCollider;
 }
+
+void EnemyBase::StartKnockBack(VECTOR direction, float power, int time)
+{
+    if (isDead == true)
+    {
+        return;
+    }
+
+    direction.y = 0.0f;
+
+    float length = sqrtf(
+        direction.x * direction.x +
+        direction.z * direction.z
+    );
+
+    if (length <= 0.001f)
+    {
+        return;
+    }
+
+    direction.x /= length;
+    direction.z /= length;
+
+    isKnockBack = true;
+    knockBackTimer = time;
+
+    knockBackVelocity.x = direction.x * power;
+    knockBackVelocity.y = 0.0f;
+    knockBackVelocity.z = direction.z * power;
+
+    isAttacking = false;
+    isAttackHit = false;
+    attackTimer = 0;
+    attackCollider.SetActive(false);
+
+    state = EnemyState::Damage;
+    animationManager.ChangeAnim(AnimationType::Damage);
+}
+
 /// <summary>
 /// ダメージ処理
 /// </summary>
@@ -526,4 +603,12 @@ bool EnemyBase::CanAttack() const
     }
 
     return attackReserveCoolTime <= 0;
+}
+/// <summary>
+/// 吹っ飛び中かどうかの判定
+/// </summary>
+/// <returns></returns>
+bool EnemyBase::IsKnockBack() const
+{
+    return isKnockBack;
 }

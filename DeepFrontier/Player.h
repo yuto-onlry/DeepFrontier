@@ -46,22 +46,6 @@ private:
 private:
     PlayerCombo playerCombo;
 
-private:
-    // Hipsフレーム
-    int hipsFrameIndex;
-    // 攻撃RootMotion用
-    bool isAttackRootMotion;
-    // 攻撃開始時の基準位置
-    VECTOR attackRootStartPosition;
-    // 攻撃開始時のHipsオフセット
-    VECTOR attackRootStartHipsOffset;
-    // 前フレームのHipsオフセット
-    VECTOR attackRootPrevHipsOffset;
-    // Hipsが実際に動いた方向
-    VECTOR attackRootMoveDir;
-    // RootMotion方向が決まったか
-    bool hasAttackRootMoveDir;
-
 public:
     Player();
     virtual ~Player();
@@ -88,17 +72,16 @@ private:
     VECTOR GetHipsOffsetFromBase(VECTOR basePosition);
     VECTOR GetHipsWorldPosition();
 
-    void StartAttackRootMotion();
-    void UpdateAttackRootMotion();
-    void EndAttackRootMotion();
-
-
 public:
     int GetAttackColliderCount() const;
     SphereCollider* GetAttackCollider(int index);
+public:
+    int GetComboIndex() const;
 
 public:
+	// 攻撃判定を無効化する
     void DisableAttackCollider();
 private:
+	// 攻撃コンボを開始する
     void StartComboAttack(int index, bool isLockOn, VECTOR lockOnTargetPos);
 };

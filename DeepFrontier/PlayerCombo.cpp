@@ -49,21 +49,32 @@ int PlayerCombo::GetNextIndex() const
     return comboIndex + 1;
 }
 
+/// <summary>
+/// コンボのインデックスに応じたアニメーションタイプを取得する
+/// </summary>
+/// <param name="isLockOn"></param>
+/// <returns></returns>
 AnimationType PlayerCombo::GetAnimationType(bool isLockOn) const
 {
     if (isLockOn == true)
     {
+		// ロックオン時のアニメーションタイプを返す
         if (comboIndex == 0)
         {
             return AnimationType::LockOnAttack;
         }
-
+		// 強攻撃2のアニメーションタイプを返す
         if (comboIndex == 1)
         {
             return AnimationType::StrongAttack;
         }
+		// 強攻撃3のアニメーションタイプを返す
+        if (comboIndex == 2)
+        {
+            return AnimationType::StrongAttack2;
+        }
 
-        return AnimationType::Attack;
+        return AnimationType::LockOnAttack;
     }
 
     if (comboIndex == 0)
@@ -76,9 +87,18 @@ AnimationType PlayerCombo::GetAnimationType(bool isLockOn) const
         return AnimationType::StrongAttack;
     }
 
+    if (comboIndex == 2)
+    {
+        return AnimationType::StrongAttack2;
+    }
+
     return AnimationType::Attack;
 }
 
+/// <summary>
+/// コンボのインデックスに応じた攻撃データを取得する
+/// </summary>
+/// <returns></returns>
 PlayerAction::AttackData PlayerCombo::GetAttackData() const
 {
     PlayerAction::AttackData data;
@@ -99,8 +119,16 @@ PlayerAction::AttackData PlayerCombo::GetAttackData() const
         return data;
     }
 
-    data.actionTime = 70;
-    data.hitStartFrame = 18;
-    data.hitEndFrame = 35;
+    if (comboIndex == 2)
+    {
+        data.actionTime = 70;
+        data.hitStartFrame = 18;
+        data.hitEndFrame = 35;
+        return data;
+    }
+
+    data.actionTime = 60;
+    data.hitStartFrame = 14;
+    data.hitEndFrame = 25;
     return data;
 }

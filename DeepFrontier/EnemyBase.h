@@ -40,6 +40,10 @@ protected:
 	int attackReserveCoolTime;  // 攻撃予約のクールタイム
 	// エネミーの状態
     EnemyState state;
+private:
+    bool isKnockBack;
+    VECTOR knockBackVelocity;
+    int knockBackTimer;
 
 public:
     EnemyBase();
@@ -82,7 +86,11 @@ protected:
 
     void AnimationAndCollider();
 public:
+    void StartKnockBack(VECTOR direction, float power, int time);
+
+public:
     // 判定系
     bool IsInAttackRange(VECTOR playerPos);
 	bool CanAttack() const;
+    bool IsKnockBack() const;
 };

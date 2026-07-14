@@ -66,9 +66,15 @@ void AnimationPreset::SetAnimationPlayer(AnimationManager& animManager, int mode
 
     animManager.LoadAnimModelForType(
         AnimationType::StrongAttack,
-        "../Animation/Player/SpinningSlashAttack.mv1",
+        "../Animation/Player/Attack.mv1",
         0
     );
+    animManager.LoadAnimModelForType(
+        AnimationType::StrongAttack2,
+        "../Animation/Player/StrongAttack2.mv1",
+        0
+    );
+
 
     animManager.LoadAnimModelForType(
         AnimationType::LockOnIdle,
@@ -119,6 +125,12 @@ void AnimationPreset::SetAnimationLittleEnemy(AnimationManager& animManager, int
         "../Animation/Enemy/MoveLeft.mv1",
         0
     );
+    animManager.LoadAnimModelForType(
+        AnimationType::KnockbackDown,
+        "../Animation/Enemy/KnockbackDown.mv1",
+        0
+    );
+
 
 
     animManager.ChangeAnim(AnimationType::Idle);

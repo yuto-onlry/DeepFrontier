@@ -14,6 +14,8 @@ enum class AnimationType
     MoveRight, // 右移動
     Attack,     // 攻撃
 	StrongAttack, // 強攻撃
+	StrongAttack2, // 強攻撃2
+	StrongAttack3, // 強攻撃3
 	LockOnIdle,         // ロックオン待機
 	LockOnWalk,         // ロックオン歩行
 	LockOnLateralMove,     // ロックオン左右移動
@@ -21,6 +23,8 @@ enum class AnimationType
 	Jump,       // ジャンプ
 	Avoid,      // 回避       
     Damage,     // ダメージ
+	KnockbackDown, // ノックバックダウン
+	Down,       // ダウン
 	GetUp,      // 起き上がり
     Dead,       // 死亡   
     Max

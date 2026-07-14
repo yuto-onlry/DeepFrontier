@@ -18,14 +18,7 @@ Player::Player()
     playerAction(),
     forward(VGet(0.0f, 0.0f, 1.0f)),
     weapon(),
-    isAttackHit(false),
-    hipsFrameIndex(-1),
-    isAttackRootMotion(false),
-    attackRootStartPosition(VGet(0.0f, 0.0f, 0.0f)),
-    attackRootStartHipsOffset(VGet(0.0f, 0.0f, 0.0f)),
-    attackRootPrevHipsOffset(VGet(0.0f, 0.0f, 0.0f)),
-    attackRootMoveDir(VGet(0.0f, 0.0f, 1.0f)),
-    hasAttackRootMoveDir(false)
+    isAttackHit(false)
 {
 }
 
@@ -68,9 +61,6 @@ void Player::Init()
     playerAction.Init(this);
     playerCombo.Init();
     isAttackHit = false;
-    isAttackRootMotion = false;
-    hasAttackRootMoveDir = false;
-
     isDead = false;
 
 }
@@ -150,6 +140,12 @@ void Player::Update(
     {
         bool wasAttack = playerAction.IsAttack();
 
+        if (wasAttack == true && inputManager.IsButtonDown(InputManager::PadButton::X) &&
+            playerAction.IsComboAcceptFrame() == true)
+        {
+            playerCombo.RequestNext();
+        }
+
         if (isLockOn == true)
         {
             LookAtTarget(lockOnTargetPos);
@@ -160,11 +156,29 @@ void Player::Update(
         // 攻撃が終わった瞬間
         if (wasAttack == true && playerAction.IsAttack() == false)
         {
-
             rootMotion.End(modelHandle, position);
 
             weapon.SetAttackColliderActive(false);
             isAttackHit = true;
+
+            if (playerCombo.ShouldNext() == true)
+            {
+                StartComboAttack(
+                    playerCombo.GetNextIndex(),
+                    isLockOn,
+                    lockOnTargetPos
+                );
+
+                animationManager.Update();
+
+                MV1SetPosition(modelHandle, position);
+                UpdateCollider();
+                weapon.Update();
+
+                return;
+            }
+
+            playerCombo.Reset();
 
             state = PlayerState::Idle;
 
@@ -177,8 +191,6 @@ void Player::Update(
                 animationManager.ChangeAnim(AnimationType::Idle);
             }
 
-            if(wasAttack)
-
             animationManager.Update();
 
             MV1SetPosition(modelHandle, position);
@@ -190,10 +202,9 @@ void Player::Update(
 
         animationManager.Update();
 
-        if (state == PlayerState::Attack && isAttackRootMotion == true)
+        if (state == PlayerState::Attack && rootMotion.IsActive() == true)
         {
             rootMotion.Update(modelHandle, position);
-            
         }
         else
         {
@@ -218,25 +229,9 @@ void Player::Update(
     // 攻撃
     if (inputManager.IsButtonDown(InputManager::PadButton::X))
     {
-        if (isLockOn == true)
-        {
-            LookAtTarget(lockOnTargetPos);
-        }
-
-        state = PlayerState::Attack;
-        animationManager.ChangeAnim(AnimationType::Attack);
-
-        playerAction.StartAttack(position, forward);
-
-        isAttackHit = false;
-
-        rootMotion.Start(modelHandle, position);
-
-
-        weapon.SetAttackColliderActive(true);
+        StartComboAttack(0, isLockOn, lockOnTargetPos);
 
         animationManager.Update();
-
 
         UpdateCollider();
         weapon.Update();
@@ -407,8 +402,8 @@ void Player::StartComboAttack(int index, bool isLockOn, VECTOR lockOnTargetPos)
 
     isAttackHit = false;
 
-    StartAttackRootMotion();
-
+    rootMotion.Start(modelHandle, position);
+    
     weapon.SetAttackColliderActive(true);
 }
 
@@ -495,149 +490,13 @@ void Player::LookAtTarget(VECTOR targetPos)
         );
     }
 }
-
-VECTOR Player::GetHipsOffsetFromBase(VECTOR basePosition)
+/// <summary>
+/// コンボのインデックスを取得
+/// </summary>
+/// <returns></returns>
+int Player::GetComboIndex() const
 {
-    if (modelHandle == -1 || hipsFrameIndex == -1)
-    {
-        return VGet(0.0f, 0.0f, 0.0f);
-    }
-
-    MATRIX hipsMatrix = MV1GetFrameLocalWorldMatrix(modelHandle, hipsFrameIndex);
-
-    VECTOR hipsPos = VGet(
-        hipsMatrix.m[3][0],
-        hipsMatrix.m[3][1],
-        hipsMatrix.m[3][2]
-    );
-
-    VECTOR offset;
-
-    offset.x = hipsPos.x - basePosition.x;
-    offset.y = 0.0f;
-    offset.z = hipsPos.z - basePosition.z;
-
-    return offset;
-}
-
-VECTOR Player::GetHipsWorldPosition()
-{
-    if (modelHandle == -1 || hipsFrameIndex == -1)
-    {
-        return position;
-    }
-
-    MATRIX hipsMatrix = MV1GetFrameLocalWorldMatrix(modelHandle, hipsFrameIndex);
-
-    VECTOR hipsPos = VGet(
-        hipsMatrix.m[3][0],
-        hipsMatrix.m[3][1],
-        hipsMatrix.m[3][2]
-    );
-
-    return hipsPos;
-}
-
-void Player::StartAttackRootMotion()
-{
-    if (modelHandle == -1 || hipsFrameIndex == -1)
-    {
-        return;
-    }
-
-    isAttackRootMotion = true;
-
-    attackRootStartPosition = position;
-
-    hasAttackRootMoveDir = false;
-    attackRootMoveDir = VGet(0.0f, 0.0f, 1.0f);
-
-    MV1SetPosition(modelHandle, attackRootStartPosition);
-
-    attackRootStartHipsOffset = GetHipsOffsetFromBase(attackRootStartPosition);
-    attackRootPrevHipsOffset = attackRootStartHipsOffset;
-}
-
-void Player::UpdateAttackRootMotion()
-{
-    if (isAttackRootMotion == false)
-    {
-        return;
-    }
-
-    if (modelHandle == -1 || hipsFrameIndex == -1)
-    {
-        return;
-    }
-
-    // Hipsの移動量を調べるため、一度攻撃開始位置に置く
-    MV1SetPosition(modelHandle, attackRootStartPosition);
-
-    VECTOR currentHipsOffset = GetHipsOffsetFromBase(attackRootStartPosition);
-
-    VECTOR delta = VSub(currentHipsOffset, attackRootPrevHipsOffset);
-    delta.y = 0.0f;
-
-    float deltaLength = sqrtf(delta.x * delta.x + delta.z * delta.z);
-
-    if (hasAttackRootMoveDir == false && deltaLength > 0.5f)
-    {
-        attackRootMoveDir.x = delta.x / deltaLength;
-        attackRootMoveDir.y = 0.0f;
-        attackRootMoveDir.z = delta.z / deltaLength;
-
-        hasAttackRootMoveDir = true;
-    }
-
-    if (hasAttackRootMoveDir == true)
-    {
-        float moveDistance =
-            delta.x * attackRootMoveDir.x +
-            delta.z * attackRootMoveDir.z;
-
-        if (moveDistance < 0.0f)
-        {
-            moveDistance = 0.0f;
-        }
-
-        const float maxMovePerFrame = 5.0f;
-
-        if (moveDistance > maxMovePerFrame)
-        {
-            moveDistance = maxMovePerFrame;
-        }
-
-        const float rootMotionRate = 0.35f;
-
-        position.x += attackRootMoveDir.x * moveDistance * rootMotionRate;
-        position.z += attackRootMoveDir.z * moveDistance * rootMotionRate;
-    }
-
-    attackRootPrevHipsOffset = currentHipsOffset;
-
-    // 最後は必ずpositionにモデルを置く
-    MV1SetPosition(modelHandle, position);
-}
-
-void Player::EndAttackRootMotion()
-{
-    if (modelHandle != -1 && hipsFrameIndex != -1)
-    {
-        VECTOR finalHipsPos = GetHipsWorldPosition();
-
-        // 攻撃開始時のHipsオフセットを引いて、
-        // Idleに戻った時も見た目が同じ場所に来るようにする
-        position.x = finalHipsPos.x - attackRootStartHipsOffset.x;
-        position.z = finalHipsPos.z - attackRootStartHipsOffset.z;
-    }
-
-    isAttackRootMotion = false;
-    hasAttackRootMoveDir = false;
-
-    MV1SetPosition(modelHandle, position);
-
-    UpdateCollider();
-    weapon.Update();
+    return playerCombo.GetIndex();
 }
 
 int Player::GetAttackColliderCount() const

@@ -168,6 +168,7 @@
     <ClCompile Include="ModelPreset.cpp" />
     <ClCompile Include="PlayerAction.cpp" />
     <ClCompile Include="PlayerCamera.cpp" />
+    <ClCompile Include="PlayerCombo.cpp" />
     <ClCompile Include="PlayerRootMotion.cpp" />
     <ClCompile Include="Playre.cpp" />
     <ClCompile Include="SphereCollider.cpp" />
@@ -195,6 +196,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerAction.h" />
     <ClInclude Include="PlayerCamera.h" />
+    <ClInclude Include="PlayerCombo.h" />
     <ClInclude Include="PlayerRootMotion.h" />
     <ClInclude Include="SphereCollider.h" />
     <ClInclude Include="UIManager.h" />

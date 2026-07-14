@@ -121,14 +121,32 @@ void CharacterManager::Update(
                 EnemyBase* hitEnemy = dynamic_cast<EnemyBase*>(enemy);
 
                 enemy->Damage(player->GetAttack());
-                player->DisableAttackCollider();
-
-                // 敵が生きている場合だけFocus用ヒットとして数える
                 if (hitEnemy != nullptr && hitEnemy->IsDead() == false)
                 {
+                    VECTOR knockDir;
+
+                    knockDir.x = hitEnemy->GetPosition().x - player->GetPosition().x;
+                    knockDir.y = 0.0f;
+                    knockDir.z = hitEnemy->GetPosition().z - player->GetPosition().z;
+
+                    int comboIndex = player->GetComboIndex();
+
+                    // 2段目：軽く押す
+                    if (comboIndex == 1)
+                    {
+                        hitEnemy->StartKnockBack(knockDir, 8.0f, 15);
+                    }
+
+                    // 3段目：強く吹っ飛ばす
+                    if (comboIndex == 2)
+                    {
+                        hitEnemy->StartKnockBack(knockDir, 18.0f, 35);
+                    }
+
                     RegisterFocusHit(hitEnemy);
                 }
 
+                player->DisableAttackCollider();
                 break;
             }
         }
