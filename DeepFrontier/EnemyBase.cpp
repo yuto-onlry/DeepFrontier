@@ -205,7 +205,7 @@ void EnemyBase::Attack(VECTOR playerPos)
 
         state = EnemyState::Idle;
 
-        attackReserveCoolTime = 120;
+        attackReserveCoolTime = 60;
 
         animationManager.SetSpeed(0.5f);
         animationManager.ChangeAnim(AnimationType::Idle);
@@ -508,6 +508,28 @@ void EnemyBase::Wait(VECTOR playerPos)
     }
 }
 
+
+void EnemyBase::StartDamageReaction()
+{
+    if (isDead == true)
+    {
+        return;
+    }
+
+    if (enemyReaction.IsActive() == true)
+    {
+        return;
+    }
+
+    StopAttack();
+
+    enemyReaction.StartDamage(
+        20,
+        animationManager
+    );
+}
+
+
 void EnemyBase::AnimationAndCollider()
 {
     animationManager.Update();
@@ -557,6 +579,22 @@ void EnemyBase::SetKnockDownRotation(VECTOR knockDir)
             VGet(0.0f, angleY + modelOffset, 0.0f)
         );
     }
+}
+
+/// <summary>
+/// 
+/// </summary>
+/// <param name="newPosition"></param>
+void EnemyBase::SetPositionForCollision(VECTOR newPosition)
+{
+    position = newPosition;
+
+    if (modelHandle != -1)
+    {
+        MV1SetPosition(modelHandle, position);
+    }
+
+    UpdateCollider();
 }
 
 bool EnemyBase::IsInAttackRange(VECTOR playerPos)

@@ -7,7 +7,9 @@
 #include "Weapon.h"
 #include "PlayerRootMotion.h"
 #include "PlayerCombo.h"
+#include "EnemyBase.h"
 #include <dinput.h>
+#include <vector>
 
 class Player : public CharacterBase
 {
@@ -44,6 +46,8 @@ private:
     PlayerRootMotion rootMotion;
 private:
     PlayerCombo playerCombo;
+private:
+    std::vector<EnemyBase*> hitEnemies;
 
 public:
     Player();
@@ -52,13 +56,7 @@ public:
 public:
     void Init() override;
 
-    void Update(
-        const InputManager& inputManager,
-        VECTOR cameraForward,
-        VECTOR cameraRight,
-        bool isLockOn,
-        VECTOR lockOnTargetPos
-    );
+    void Update(const InputManager& inputManager,VECTOR cameraForward,VECTOR cameraRight,bool isLockOn,VECTOR lockOnTargetPos);
 
     void UpdateCollider();
     void Draw() override;
@@ -77,11 +75,17 @@ public:
     void SetPositionForCollision(VECTOR newPosition);
 public:
     int GetComboIndex() const;
-
+    void ClearHitEnemies();
+    void AddHitEnemy(EnemyBase* enemy);
 public:
 	// 攻撃判定を無効化する
     void DisableAttackCollider();
 private:
 	// 攻撃コンボを開始する
     void StartComboAttack(int index, bool isLockOn, VECTOR lockOnTargetPos);
+public:
+    VECTOR GetCheckPosition();
+    bool IsAttacking() const;
+    bool HitEnemy(EnemyBase* enemy) const;
+
 };

@@ -1,5 +1,6 @@
 #include "EnemyManager.h"
 #include "LittleEnemy.h"
+#include "Player.h"
 #include <cmath>
 
 
@@ -287,13 +288,21 @@ void EnemyManager::ResolvePlayer(Player* player)
         return;
     }
 
-    VECTOR playerPos = player->GetPosition();
+    // 通常時はposition、攻撃中はHips位置
+    VECTOR checkPos = player->GetCheckPosition();
+
+    VECTOR correction = VGet(0.0f, 0.0f, 0.0f);
 
     const float playerRadius = 50.0f;
     const float enemyRadius = 50.0f;
 
-    // 少し余裕を持たせる
-    const float minDistance = playerRadius + enemyRadius + 20.0f;
+    float minDistance = playerRadius + enemyRadius + 20.0f;
+
+    // 攻撃中は体が前に出るので、少し広めに取る
+    if (player->IsAttacking() == true)
+    {
+        minDistance = playerRadius + enemyRadius + 80.0f;
+    }
 
     for (auto& enemy : enemies)
     {
@@ -307,16 +316,10 @@ void EnemyManager::ResolvePlayer(Player* player)
             continue;
         }
 
-        // ダウン中の敵をすり抜けたい場合はここで除外
-        if (enemy->IsDead() == true)
-        {
-            continue;
-        }
-
         VECTOR enemyPos = enemy->GetPosition();
 
-        float dx = playerPos.x - enemyPos.x;
-        float dz = playerPos.z - enemyPos.z;
+        float dx = checkPos.x - enemyPos.x;
+        float dz = checkPos.z - enemyPos.z;
 
         float distanceSq = dx * dx + dz * dz;
 
@@ -336,15 +339,43 @@ void EnemyManager::ResolvePlayer(Player* player)
 
         float pushDistance = minDistance - distance;
 
+        // 攻撃中は一気に押し戻すとカクつくので弱める
+        if (player->IsAttacking() == true)
+        {
+            pushDistance *= 0.25f;
+        }
+
+        const float maxPushPerFrame = 5.0f;
+
+        if (pushDistance > maxPushPerFrame)
+        {
+            pushDistance = maxPushPerFrame;
+        }
+
         dx /= distance;
         dz /= distance;
 
-        // PlayerをEnemyから離す
-        playerPos.x += dx * pushDistance;
-        playerPos.z += dz * pushDistance;
+        VECTOR push;
+        push.x = dx * pushDistance;
+        push.y = 0.0f;
+        push.z = dz * pushDistance;
+
+        correction = VAdd(correction, push);
+
+        // 複数Enemy対策
+        checkPos = VAdd(checkPos, push);
     }
 
-    player->SetPositionForCollision(playerPos);
+    if (fabsf(correction.x) > 0.001f ||
+        fabsf(correction.z) > 0.001f)
+    {
+        VECTOR newPlayerPos = VAdd(
+            player->GetPosition(),
+            correction
+        );
+
+        player->SetPositionForCollision(newPlayerPos);
+    }
 }
 bool EnemyManager::ContainsEnemy(EnemyBase* enemy) const
 {
@@ -515,5 +546,28 @@ void EnemyManager::ResolveEnemyCollision()
                 }
             }
         }
+    }
+}
+
+void EnemyManager::ResolveStageCollision(const StageManager& stageManager)
+{
+    for (auto& enemy : enemies)
+    {
+        if (enemy == nullptr)
+        {
+            continue;
+        }
+
+        if (enemy->IsDead() == true)
+        {
+            continue;
+        }
+
+        VECTOR fixedPos = stageManager.ClampPosition(
+            enemy->GetPosition(),
+            50.0f
+        );
+
+        enemy->SetPositionForCollision(fixedPos);
     }
 }

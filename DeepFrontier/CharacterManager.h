@@ -5,6 +5,7 @@
 #include "CollisionManager.h"
 #include "EnemyManager.h"
 #include "LockOnManager.h"
+#include "StageManager.h"
 #include <memory>
 
 class CharacterManager
@@ -34,8 +35,7 @@ public:
     ~CharacterManager();
 public:
     void Init();
-    void Update(const InputManager& inputManager,VECTOR cameraForward,VECTOR cameraRight);
-
+    void Update(const InputManager& inputManager,VECTOR cameraForward,VECTOR cameraRight, const StageManager& stageManager);
     void Draw();
     void Release();
 

@@ -31,11 +31,7 @@ void CharacterManager::Init()
     focusHitTimer = 0;
 }
 
-void CharacterManager::Update(
-    const InputManager& inputManager,
-    VECTOR cameraForward,
-    VECTOR cameraRight
-)
+void CharacterManager::Update(const InputManager& inputManager, VECTOR cameraForward, VECTOR cameraRight, const StageManager& stageManager)
 {
     // 先にロックオン更新
     if (player != nullptr)
@@ -59,6 +55,12 @@ void CharacterManager::Update(
             lockOnManager.IsLockOn(),
             lockOnManager.GetTargetPosition()
         );
+    }
+
+    if (player != nullptr)
+    {
+        VECTOR fixedPos = stageManager.ClampPosition(player->GetPosition(),50.0f);
+        player->SetPositionForCollision(fixedPos);
     }
 
     VECTOR playerPos = GetPlayerPosition();
@@ -121,11 +123,22 @@ void CharacterManager::Update(
             {
                 EnemyBase* hitEnemy = dynamic_cast<EnemyBase*>(enemy);
 
-                // すでに吹っ飛び・ダウン・起き上がり中なら、再度ヒットさせない
+                // 吹っ飛び・ダウン・起き上がり中なら、再度ヒットさせない
                 if (hitEnemy != nullptr && hitEnemy->IsHitReaction() == true)
                 {
                     player->DisableAttackCollider();
                     break;
+                }
+                //すでに攻撃があたっているなら
+                if (hitEnemy != nullptr)
+                {
+                    // この攻撃ですでに当たっているEnemyなら無視
+                    if (player->HitEnemy(hitEnemy) == true)
+                    {
+                        continue;
+                    }
+
+                    player->AddHitEnemy(hitEnemy);
                 }
 
                 enemy->Damage(player->GetAttack());
@@ -139,34 +152,28 @@ void CharacterManager::Update(
                     knockDir.z = hitEnemy->GetPosition().z - player->GetPosition().z;
 
                     int comboIndex = player->GetComboIndex();
-
-                    // 2段目：軽く押す
-                    if (comboIndex == 1)
+                    if (comboIndex == 0)
                     {
-                        hitEnemy->StartKnockBack(
-                            knockDir,
-                            8.0f,
-                            15
-                        );
+                        hitEnemy->StartDamageReaction();
                     }
-
-                    // 3段目：吹っ飛び + ダウン
-                    if (comboIndex == 2)
+                    else if (comboIndex == 1)
+                    {
+                        hitEnemy->StartKnockBack(knockDir, 8.0f, 15);
+                    }
+                    else if (comboIndex == 2)
                     {
                         hitEnemy->StartKnockDown(
                             knockDir,
-                            30.0f, // 横方向
-                            14.0f, // 上方向
-                            120,    // KnockbackDownアニメ全体の時間
-                            80     // GetUp時間
+                            25.0f,
+                            13.0f,
+                            110,
+                            60
                         );
                     }
-
                     RegisterFocusHit(hitEnemy);
                 }
 
-                player->DisableAttackCollider();
-                break;
+                continue;
             }
         }
 

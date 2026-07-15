@@ -68,7 +68,7 @@ void PlayerCamera::Init()
     Apply();
 }
 
-void PlayerCamera::Update(VECTOR playerPos,VECTOR rightStick, bool isLockOn,VECTOR lockOnTargetPos)
+void PlayerCamera::Update(VECTOR playerPos,VECTOR rightStick, bool isLockOn,VECTOR lockOnTargetPos , const StageManager& stageManager)
 {
     VECTOR cameraPlayerPos = SmoothPlayerPosition(playerPos);
 
@@ -76,6 +76,9 @@ void PlayerCamera::Update(VECTOR playerPos,VECTOR rightStick, bool isLockOn,VECT
         LockOnCamera(cameraPlayerPos, lockOnTargetPos);
     else
         NormalCamera(cameraPlayerPos, rightStick);
+
+    // カメラをステージ内に収める
+    position = stageManager.ClampCameraPosition(position);
 
     Apply();
 }
@@ -186,6 +189,7 @@ void PlayerCamera::LockOnCamera(VECTOR playerPos, VECTOR lockOnTargetPos)
 /// </summary>
 void PlayerCamera::Apply()
 {
+    SetCameraNearFar(1.0f, 20000.0f);
 	// カメラの位置と注視点を設定
     SetCameraPositionAndTarget_UpVecY(position, target);
 }

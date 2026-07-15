@@ -12,6 +12,7 @@ public:
         None,
         KnockBack,
         KnockbackDown,
+        Damage,
         GetUp
     };
 
@@ -23,6 +24,7 @@ private:
     int knockBackTimer;
     int knockbackDownTimer;
     int getUpTimer;
+    int damageTimer;
 
     float gravity;
 
@@ -35,30 +37,16 @@ public:
 
     void Init();
 
-    void StartKnockBack(
-        VECTOR direction,
-        float power,
-        int time,
+    void StartKnockBack(VECTOR direction,float power,int time,AnimationManager& animationManager);
+
+    void StartKnockDown(int modelHandle,
+        VECTOR position, VECTOR direction,
+        float horizontalPower,float verticalPower,
+        int knockbackDownTime,int getUpTime,
         AnimationManager& animationManager
     );
-
-    void StartKnockDown(
-        int modelHandle,
-        VECTOR position,
-        VECTOR direction,
-        float horizontalPower,
-        float verticalPower,
-        int knockbackDownTime,
-        int getUpTime,
-        AnimationManager& animationManager
-    );
-
-    void Update(
-        int modelHandle,
-        VECTOR& position,
-        AnimationManager& animationManager,
-        SphereCollider& attackCollider
-    );
+    void StartDamage(int timer, AnimationManager& animationManager);
+    void Update(int modelHandle,VECTOR& position,AnimationManager& animationManager,SphereCollider& attackCollider);
 
     bool IsActive() const;
     bool IsKnockBack() const;
@@ -91,4 +79,7 @@ private:
         AnimationManager& animationManager,
         SphereCollider& attackCollider
     );
+
+    void Damage(int modelHandle, VECTOR& position, AnimationManager& animationManager, SphereCollider& attackCollider);
+
 };

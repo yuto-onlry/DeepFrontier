@@ -21,12 +21,16 @@ void GameManager::Init()
     waveManager.Init();
     waveManager.Start();
 
+    stageManager.Init();
+
     gameState = GameState::Playing;
 }
 
 void GameManager::Update()
 {
     inputManager.Update();
+    stageManager.Update();
+
 
     if (gameState == GameState::Playing)
     {
@@ -42,9 +46,9 @@ void GameManager::UpdatePlaying()
     characterManager.Update(
         inputManager,
         cameraForward,
-        cameraRight
+        cameraRight,
+        stageManager
     );
-
     // プレイヤー死亡判定
     if (characterManager.GetPlayer() != nullptr)
     {
@@ -85,7 +89,8 @@ void GameManager::UpdatePlaying()
             characterManager.GetPlayer()->GetPosition(),
             rightStick,
             useFocusCamera,
-            lockOnTargetPos
+            lockOnTargetPos,
+            stageManager
         );
     }
 }
@@ -93,6 +98,7 @@ void GameManager::UpdatePlaying()
 void GameManager::Draw()
 {
     DrawGround();
+    stageManager.Draw();
 
     characterManager.Draw();
 
@@ -131,6 +137,7 @@ void GameManager::Draw()
 
 void GameManager::Release()
 {
+    stageManager.Release();
     characterManager.Release();
     uiManager.Release();
 }

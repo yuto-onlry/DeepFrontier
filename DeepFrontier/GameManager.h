@@ -5,6 +5,7 @@
 #include "UIManager.h"
 #include "PlayerCamera.h"
 #include "WaveManager.h"
+#include "StageManager.h"
 
 enum class GameState
 {
@@ -22,7 +23,7 @@ private:
     UIManager uiManager;
     PlayerCamera playerCamera;
     WaveManager waveManager;
-
+    StageManager stageManager;
     GameState gameState;
 
 public:

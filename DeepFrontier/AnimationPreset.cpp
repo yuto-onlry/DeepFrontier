@@ -135,8 +135,10 @@ void AnimationPreset::SetAnimationLittleEnemy(AnimationManager& animManager, int
         "../Animation/Enemy/GetUp.mv1",
         0
     );
-
-
-
+    animManager.LoadAnimModelForType(
+        AnimationType::Damage,
+        "../Animation/Enemy/Damage.mv1",
+        0
+    );
     animManager.ChangeAnim(AnimationType::Idle);
 }

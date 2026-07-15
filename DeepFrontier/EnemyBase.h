@@ -87,20 +87,19 @@ protected:
     void StopAttack();
 
     void AnimationAndCollider();
+public:
+
     void SetKnockDownRotation(VECTOR knockDir);
+    void SetPositionForCollision(VECTOR newPosition);
 
 public:
     // 軽いノックバック
     void StartKnockBack(VECTOR direction, float power, int time);
 
     // 吹っ飛び + ダウン
-    void StartKnockDown(
-        VECTOR direction,
-        float horizontalPower,
-        float verticalPower,
-        int knockbackDownTime,
-        int getUpTime
-    );
+    void StartKnockDown(VECTOR direction, float horizontalPower,float verticalPower,int knockbackDownTime,int getUpTime);
+    void StartDamageReaction();
+
 
 public:
     bool IsInAttackRange(VECTOR playerPos);

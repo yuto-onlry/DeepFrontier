@@ -394,6 +394,8 @@ void Player::StartComboAttack(int index, bool isLockOn, VECTOR lockOnTargetPos)
 
     playerCombo.SetIndex(index);
 
+    ClearHitEnemies();
+
     AnimationType animType = playerCombo.GetAnimationType(isLockOn);
     animationManager.ChangeAnim(animType);
 
@@ -403,7 +405,7 @@ void Player::StartComboAttack(int index, bool isLockOn, VECTOR lockOnTargetPos)
     isAttackHit = false;
 
     rootMotion.Start(modelHandle, position);
-    
+
     weapon.SetAttackColliderActive(true);
 }
 
@@ -499,6 +501,39 @@ int Player::GetComboIndex() const
     return playerCombo.GetIndex();
 }
 
+void Player::ClearHitEnemies()
+{
+    hitEnemies.clear();
+}
+
+bool Player::HitEnemy(EnemyBase* enemy) const
+{
+    for (EnemyBase* hitEnemy : hitEnemies)
+    {
+        if (hitEnemy == enemy)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void Player::AddHitEnemy(EnemyBase* enemy)
+{
+    if (enemy == nullptr)
+    {
+        return;
+    }
+
+    if (HitEnemy(enemy) == true)
+    {
+        return;
+    }
+
+    hitEnemies.push_back(enemy);
+}
+
 int Player::GetAttackColliderCount() const
 {
     return weapon.GetAttackColliderCount();
@@ -518,7 +553,8 @@ void Player::SetPositionForCollision(VECTOR newPosition)
     VECTOR correction = VSub(newPosition, position);
 
     position = newPosition;
-    //
+
+    // RootMotion中なら基準位置も補正
     rootMotion.PositionCorrection(correction);
 
     if (modelHandle != -1)
@@ -534,4 +570,26 @@ void Player::DisableAttackCollider()
 {
     isAttackHit = true;
     weapon.SetAttackColliderActive(false);
+}
+
+/// <summary>
+/// 
+/// </summary>
+/// <returns></returns>
+VECTOR Player::GetCheckPosition()
+{
+    if (IsAttacking() == true)
+    {
+        return rootMotion.GetCheckPosition(
+            modelHandle,
+            position
+        );
+    }
+
+    return position;
+}
+
+bool Player::IsAttacking() const
+{
+    return playerAction.IsAttack();
 }

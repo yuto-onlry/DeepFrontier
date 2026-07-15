@@ -1,5 +1,7 @@
 #pragma once
 #include "DxLib.h"
+#include "StageManager.h"
+
 
 class PlayerCamera
 {
@@ -32,7 +34,7 @@ public:
     VECTOR GetRight() const;
 public:
     void Init();
-    void Update(VECTOR playerPos, VECTOR rightStick, bool isLockOn, VECTOR lockOnTargetPos);
+    void Update(VECTOR playerPos,VECTOR rightStick,bool isLockOn,VECTOR lockOnTargetPos,const StageManager& stageManager); 
     void Apply();
 private:
 	// プレイヤーの位置を滑らかに追従させる

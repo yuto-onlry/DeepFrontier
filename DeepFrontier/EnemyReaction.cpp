@@ -9,7 +9,8 @@ EnemyReaction::EnemyReaction()
     getUpTimer(0),
     gravity(0.8f),
     isGroundedAfterKnockBack(false),
-    rootMotion()
+    rootMotion(),
+    damageTimer(0)
 {
 }
 
@@ -22,20 +23,16 @@ void EnemyReaction::Init()
     knockBackTimer = 0;
     knockbackDownTimer = 0;
     getUpTimer = 0;
+    damageTimer = 0;
 
-    gravity = 0.8f;
+    gravity = 0;
 
     isGroundedAfterKnockBack = false;
 
     rootMotion.Init();
 }
 
-void EnemyReaction::StartKnockBack(
-    VECTOR direction,
-    float power,
-    int time,
-    AnimationManager& animationManager
-)
+void EnemyReaction::StartKnockBack(VECTOR direction, float power,int time,AnimationManager& animationManager)
 {
     if (IsActive() == true)
     {
@@ -65,7 +62,7 @@ void EnemyReaction::StartKnockBack(
     knockBackVelocity.y = 0.0f;
     knockBackVelocity.z = direction.z * power;
 
-    animationManager.SetSpeed(1.0f);
+    animationManager.SetSpeed(1.5f);
     animationManager.ChangeAnim(AnimationType::Damage);
 }
 
@@ -123,13 +120,13 @@ void EnemyReaction::StartKnockDown(
     rootMotion.Start(modelHandle, position);
 }
 
-void EnemyReaction::Update(
-    int modelHandle,
-    VECTOR& position,
-    AnimationManager& animationManager,
-    SphereCollider& attackCollider
-)
+void EnemyReaction::Update(int modelHandle,VECTOR& position,AnimationManager& animationManager,SphereCollider& attackCollider)
 {
+    if (state == ReactionState::Damage)
+    {
+        Damage(modelHandle, position, animationManager, attackCollider);
+        return;
+    }
     if (state == ReactionState::KnockBack)
     {
         KnockBack(
@@ -280,6 +277,41 @@ void EnemyReaction::GetUp(
     }
 }
 
+void EnemyReaction::StartDamage(int time,AnimationManager& animationManager)
+{
+    if (IsActive() == true)
+    {
+        return;
+    }
+
+    state = ReactionState::Damage;
+    damageTimer = time;
+
+    animationManager.SetSpeed(1.0f);
+    animationManager.ChangeAnim(AnimationType::Damage);
+}
+
+void EnemyReaction::Damage(int modelHandle, VECTOR& position,AnimationManager& animationManager,SphereCollider& attackCollider)
+{
+    attackCollider.SetActive(false);
+
+    damageTimer--;
+
+    if (damageTimer <= 0)
+    {
+        state = ReactionState::None;
+
+        animationManager.SetSpeed(0.5f);
+        animationManager.ChangeAnim(AnimationType::Idle);
+    }
+
+    animationManager.Update();
+
+    if (modelHandle != -1)
+    {
+        MV1SetPosition(modelHandle, position);
+    }
+}
 bool EnemyReaction::IsActive() const
 {
     return state != ReactionState::None;

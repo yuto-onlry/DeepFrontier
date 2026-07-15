@@ -34,7 +34,7 @@ void PlayerRootMotion::Start(int modelHandle, VECTOR position)
     MV1SetPosition(modelHandle, attackRootStartPosition);
 
     attackRootStartHipsOffset =
-        GetHipsOffsetFromBase(modelHandle, attackRootStartPosition);
+        GetOffsetFromBase(modelHandle, attackRootStartPosition);
 
     attackRootPrevHipsOffset = attackRootStartHipsOffset;
 }
@@ -54,7 +54,7 @@ void PlayerRootMotion::Update(int modelHandle, VECTOR& position)
     MV1SetPosition(modelHandle, attackRootStartPosition);
 
     VECTOR currentHipsOffset =
-        GetHipsOffsetFromBase(modelHandle, attackRootStartPosition);
+        GetOffsetFromBase(modelHandle, attackRootStartPosition);
 
     VECTOR delta = VSub(currentHipsOffset, attackRootPrevHipsOffset);
     delta.y = 0.0f;
@@ -139,6 +139,29 @@ VECTOR PlayerRootMotion::GetHipsWorldPosition(
     );
 }
 
+VECTOR PlayerRootMotion::GetCheckPosition(
+    int modelHandle,
+    VECTOR position
+) const
+{
+    // RootMotion中じゃないなら通常のpositionを使う
+    if (isActive == false)
+    {
+        return position;
+    }
+
+    VECTOR hipsPos = GetHipsWorldPosition(
+        modelHandle,
+        position
+    );
+
+    return VGet(
+        hipsPos.x,
+        position.y,
+        hipsPos.z
+    );
+}
+
 /// <summary>
 /// 
 /// </summary>
@@ -152,10 +175,8 @@ void PlayerRootMotion::PositionCorrection(VECTOR correction)
 
     attackRootStartPosition = VAdd(attackRootStartPosition, correction);
 }
-VECTOR PlayerRootMotion::GetHipsOffsetFromBase(
-    int modelHandle,
-    VECTOR basePosition
-) const
+
+VECTOR PlayerRootMotion::GetOffsetFromBase(int modelHandle,VECTOR basePosition) const
 {
     if (modelHandle == -1 || hipsFrameIndex == -1)
     {
