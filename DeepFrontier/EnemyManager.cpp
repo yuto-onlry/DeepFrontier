@@ -567,7 +567,8 @@ void EnemyManager::ResolveStageCollision(const StageManager& stageManager)
             enemy->GetPosition(),
             50.0f
         );
-
+        fixedPos = stageManager.FitPositionToGround(fixedPos, 0.0f);
+        
         enemy->SetPositionForCollision(fixedPos);
     }
 }

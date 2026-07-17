@@ -48,7 +48,7 @@ bool Weapon::Init(int playerModelHandle, CharacterBase* owner)
     ownerModelHandle = playerModelHandle;
 
     // 武器モデル読み込み
-    WeaponModelHandle = MV1LoadModel("../3dModel/Player/Weapon/Weapon.mv1");
+    WeaponModelHandle = MV1LoadModel("../3dModel/Weapon/Weapon.mv1");
     if (WeaponModelHandle == -1)
     {
         return false;

@@ -28,6 +28,9 @@ public:
     // ステージ内に収める
     VECTOR ClampPosition(VECTOR targetPosition, float radius) const;
     VECTOR ClampCameraPosition(VECTOR cameraPosition) const;
+public:
+    bool GetGroundYByRay(VECTOR targetPosition, float& outGroundY) const;
+    VECTOR FitPositionToGround(VECTOR targetPosition, float footOffset) const;
 
     // 地面の高さ
     float GetGroundY() const;

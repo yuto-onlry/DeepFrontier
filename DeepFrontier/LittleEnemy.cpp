@@ -21,7 +21,7 @@ void LittleEnemy::Init()
     velocity = VGet(0.0f, 0.0f, 0.0f);
 
     moveSpeed = 2.5f;
-    attackRange = 70.0f;
+    attackRange = 180.0f;
     //モデルのセット
     modelHandle = ModelPreset::LoadLittleEnemyModel();
 

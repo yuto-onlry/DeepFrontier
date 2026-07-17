@@ -1,5 +1,6 @@
 #include "StageManager.h"
 #include <cmath>
+#include <cstdio>
 
 namespace
 {
@@ -28,7 +29,6 @@ namespace
         }
     }
 }
-
 StageManager::StageManager()
     : stageModelHandle(-1),
     position(VGet(0.0f, 0.0f, 0.0f)),
@@ -62,6 +62,9 @@ bool StageManager::Init()
     stageCenter = VGet(0.0f, 0.0f, 0.0f);
     stageRadius =2200.0f;
     groundY = 0.0f;
+
+    // ステージの当たり判定情報を作成
+    //MV1SetupCollInfo(stageModelHandle, -1, 8, 4, 8);
 
     MV1SetPosition(stageModelHandle, position);
     MV1SetScale(stageModelHandle, scale);
@@ -102,13 +105,20 @@ void StageManager::Draw()
 
 void StageManager::Release()
 {
+
     if (stageModelHandle != -1)
     {
+
+        // いったんコメントアウトしているなら、このままでOK
+        // MV1TerminateCollInfo(stageModelHandle, -1);
+
+
         MV1DeleteModel(stageModelHandle);
+
         stageModelHandle = -1;
     }
-}
 
+}
 VECTOR StageManager::ClampPosition(VECTOR targetPosition, float radius) const
 {
     VECTOR result = targetPosition;
@@ -172,6 +182,57 @@ VECTOR StageManager::ClampCameraPosition(VECTOR cameraPosition) const
             result.x = stageCenter.x + dx * cameraLimitRadius;
             result.z = stageCenter.z + dz * cameraLimitRadius;
         }
+    }
+
+    return result;
+}
+
+bool StageManager::GetGroundYByRay(VECTOR targetPosition,float& outGroundY) const
+{
+    if (stageModelHandle == -1)
+    {
+        return false;
+    }
+
+    VECTOR start = VGet(
+        targetPosition.x,
+        targetPosition.y + 1000.0f,
+        targetPosition.z
+    );
+
+    VECTOR end = VGet(
+        targetPosition.x,
+        targetPosition.y - 1000.0f,
+        targetPosition.z
+    );
+
+    MV1_COLL_RESULT_POLY hitResult = MV1CollCheck_Line(stageModelHandle, -1, start, end);
+
+    if (hitResult.HitFlag == TRUE)
+    {
+        outGroundY = hitResult.HitPosition.y;
+        return true;
+    }
+
+    return false;
+}
+
+VECTOR StageManager::FitPositionToGround(
+    VECTOR targetPosition,
+    float footOffset
+) const
+{
+    VECTOR result = targetPosition;
+
+    float hitGroundY = 0.0f;
+
+    if (GetGroundYByRay(result, hitGroundY) == true)
+    {
+        result.y = hitGroundY + footOffset;
+    }
+    else
+    {
+        result.y = groundY + footOffset;
     }
 
     return result;
