@@ -6,9 +6,11 @@
 #include "PlayerCamera.h"
 #include "WaveManager.h"
 #include "StageManager.h"
+#include "TitleManager.h"
 
 enum class GameState
 {
+    Title,
 	Playing,        //ゲームプレイ中
 	GameClear,      //ゲームクリア
 	GameOver        //ゲームオーバー
@@ -25,6 +27,10 @@ private:
     WaveManager waveManager;
     StageManager stageManager;
     GameState gameState;
+    TitleManager titleManager;
+
+    bool isPlaying;
+    
 
 public:
     GameManager();
@@ -36,6 +42,11 @@ public:
     void Release();
 
 private:
-    void UpdatePlaying();
+    void Title();
+    void Playing();
     void DrawGround();
+
+    void StartGame();
+    void ReleasePlaying();
+    void BackTitle();
 };

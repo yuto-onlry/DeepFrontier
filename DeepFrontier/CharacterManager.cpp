@@ -59,8 +59,8 @@ void CharacterManager::Update(const InputManager& inputManager, VECTOR cameraFor
 
     if (player != nullptr)
     {
-        VECTOR fixedPos = stageManager.ClampPosition(player->GetPosition(),50.0f);
-        fixedPos = stageManager.FitPositionToGround(fixedPos, 0.0f);
+        VECTOR fixedPos = stageManager.ClampPosition(player->GetPosition(),-15.0f);
+        fixedPos = stageManager.FitPositionToGround(fixedPos, -15.0f);
 
         player->SetPositionForCollision(fixedPos);
     }

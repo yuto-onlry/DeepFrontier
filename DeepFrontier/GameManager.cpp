@@ -1,7 +1,8 @@
 #include "GameManager.h"
 
 GameManager::GameManager()
-    : gameState(GameState::Playing)
+    : gameState(GameState::Title),
+    isPlaying(false)
 {
 }
 
@@ -12,6 +13,7 @@ GameManager::~GameManager()
 
 void GameManager::Init()
 {
+    titleManager.Init();
     characterManager.Init();
 
     uiManager.Init();
@@ -20,25 +22,53 @@ void GameManager::Init()
 
     waveManager.Init();
     waveManager.Start();
-
+    
     stageManager.Init();
+    
+ 
 
-    gameState = GameState::Playing;
+    gameState = GameState::Title;
 }
 
 void GameManager::Update()
 {
     inputManager.Update();
-    stageManager.Update();
 
+    if (gameState == GameState::Title)
+    {
+        Title();
+        return;
+    }
 
     if (gameState == GameState::Playing)
     {
-        UpdatePlaying();
+        stageManager.Update();
+        Playing();
+        return;
+    }
+
+    if (gameState == GameState::GameOver)
+    {
+        if (inputManager.IsButtonDown(InputManager::PadButton::A))
+        {
+            BackTitle();
+        }
+
+        return;
+    }
+
+    if (gameState == GameState::GameClear)
+    {
+        if (inputManager.IsButtonDown(InputManager::PadButton::A))
+        {
+            BackTitle();
+        }
+
+        return;
     }
 }
 
-void GameManager::UpdatePlaying()
+void GameManager::Playing()
 {
     VECTOR cameraForward = playerCamera.GetForward();
     VECTOR cameraRight = playerCamera.GetRight();
@@ -95,23 +125,85 @@ void GameManager::UpdatePlaying()
     }
 }
 
+void GameManager::Title()
+{
+    titleManager.Update(inputManager);
+
+    if (titleManager.IsStartRequest() == true)
+    {
+        StartGame();
+    }
+}
+
+void GameManager::StartGame()
+{
+    ReleasePlaying();
+
+    characterManager.Init();
+
+    uiManager.Init();
+
+    playerCamera.Init();
+
+    waveManager.Init();
+    waveManager.Start();
+
+    stageManager.Init();
+
+    isPlaying= true;
+
+    gameState = GameState::Playing;
+}
+
+void GameManager::ReleasePlaying()
+{
+    if (isPlaying == false)
+    {
+        return;
+    }
+
+    stageManager.Release();
+    characterManager.Release();
+    uiManager.Release();
+
+    isPlaying= false;
+}
+
+void GameManager::BackTitle()
+{
+    ReleasePlaying();
+
+    titleManager.Init();
+
+    gameState = GameState::Title;
+}
 void GameManager::Draw()
 {
-    DrawGround();
-    stageManager.Draw();
-
-    characterManager.Draw();
-
-    waveManager.Draw(characterManager);
-
-    if (characterManager.GetPlayer() != nullptr)
+    if (gameState == GameState::Title)
     {
-        Player* player = characterManager.GetPlayer();
+        titleManager.Draw();
+        return;
+    }
 
-        uiManager.DrawPlayerHp(
-            player->GetHp(),
-            player->GetMaxHp()
-        );
+    if (gameState == GameState::Playing ||
+        gameState == GameState::GameOver ||
+        gameState == GameState::GameClear)
+    {
+        stageManager.Draw();
+
+        characterManager.Draw();
+
+        waveManager.Draw(characterManager);
+
+        if (characterManager.GetPlayer() != nullptr)
+        {
+            Player* player = characterManager.GetPlayer();
+
+            uiManager.DrawPlayerHp(
+                player->GetHp(),
+                player->GetMaxHp()
+            );
+        }
     }
 
     if (gameState == GameState::GameOver)
@@ -121,6 +213,13 @@ void GameManager::Draw()
             250,
             "GAME OVER",
             GetColor(255, 0, 0)
+        );
+
+        DrawString(
+            300,
+            300,
+            "A BUTTON : TITLE",
+            GetColor(255, 255, 255)
         );
     }
 
@@ -132,50 +231,19 @@ void GameManager::Draw()
             "GAME CLEAR",
             GetColor(255, 255, 0)
         );
+
+        DrawString(
+            300,
+            300,
+            "A BUTTON : TITLE",
+            GetColor(255, 255, 255)
+        );
     }
 }
 
 void GameManager::Release()
 {
-    stageManager.Release();
-    characterManager.Release();
-    uiManager.Release();
-}
+    ReleasePlaying();
 
-void GameManager::DrawGround()
-{
-    DrawCube3D(
-        VGet(-2000.0f, -40.0f, -2000.0f),
-        VGet(2000.0f, -35.0f, 2000.0f),
-        GetColor(30, 30, 40),
-        GetColor(30, 30, 40),
-        TRUE
-    );
-
-    for (int i = -2000; i <= 2000; i += 100)
-    {
-        DrawLine3D(
-            VGet((float)i, -34.0f, -2000.0f),
-            VGet((float)i, -34.0f, 2000.0f),
-            GetColor(80, 80, 100)
-        );
-
-        DrawLine3D(
-            VGet(-2000.0f, -34.0f, (float)i),
-            VGet(2000.0f, -34.0f, (float)i),
-            GetColor(80, 80, 100)
-        );
-    }
-
-    DrawLine3D(
-        VGet(-2000.0f, -33.0f, 0.0f),
-        VGet(2000.0f, -33.0f, 0.0f),
-        GetColor(120, 80, 80)
-    );
-
-    DrawLine3D(
-        VGet(0.0f, -33.0f, -2000.0f),
-        VGet(0.0f, -33.0f, 2000.0f),
-        GetColor(80, 120, 80)
-    );
+    titleManager.Release();
 }

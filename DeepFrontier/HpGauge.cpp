@@ -28,6 +28,11 @@ void HpGauge::Init(
     frameHandle = LoadGraph(framePath);
 }
 
+/// <summary>
+/// HPゲージの更新処理
+/// </summary>
+/// <param name="hp">現在のHP</param>
+/// <param name="maxHp">最大HP（0以下の場合は処理を行いません）</param>
 void HpGauge::Update(int hp, int maxHp)
 {
     if (maxHp <= 0)

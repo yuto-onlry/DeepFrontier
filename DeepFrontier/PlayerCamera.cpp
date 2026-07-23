@@ -205,7 +205,7 @@ VECTOR PlayerCamera::SmoothPlayerPosition(VECTOR playerPos)
     {
         smoothPlayerPosition = playerPos;
         isSmoothPlayerPositionInit = true;
-        return smoothPlayerPosition;
+        return  smoothPlayerPosition;
     }
 	// プレイヤーの位置を滑らかに追従させる
     const float smoothSpeed = 0.18f;

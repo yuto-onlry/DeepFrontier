@@ -175,6 +175,7 @@
     <ClCompile Include="Playre.cpp" />
     <ClCompile Include="SphereCollider.cpp" />
     <ClCompile Include="StageManager.cpp" />
+    <ClCompile Include="TitleManager.cpp" />
     <ClCompile Include="UIManager.cpp" />
     <ClCompile Include="WaveManager.cpp" />
     <ClCompile Include="Weapon.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="PlayerRootMotion.h" />
     <ClInclude Include="SphereCollider.h" />
     <ClInclude Include="StageManager.h" />
+    <ClInclude Include="TitleManager.h" />
     <ClInclude Include="UIManager.h" />
     <ClInclude Include="WaveManager.h" />
     <ClInclude Include="Weapon.h" />
