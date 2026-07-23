@@ -18,7 +18,8 @@ Player::Player()
     playerAction(),
     forward(VGet(0.0f, 0.0f, 1.0f)),
     weapon(),
-    isAttackHit(false)
+    isAttackHit(false),
+    groundY(0.0f)
 {
 }
 
@@ -298,13 +299,14 @@ void Player::Update(
         position.y += verticalVelocity;
         verticalVelocity -= 0.8f;
 
-        if (position.y <= 0.0f)
+        if (position.y <= groundY)
         {
-            position.y = 0.0f;
+            position.y = groundY;
             verticalVelocity = 0.0f;
             isJumping = false;
 
-            animationManager.ChangeAnim(AnimationType::Jump);
+            state = PlayerState::Idle;
+            animationManager.ChangeAnim(AnimationType::Idle);
         }
         else
         {
@@ -492,6 +494,24 @@ void Player::LookAtTarget(VECTOR targetPos)
         );
     }
 }
+/// <summary>
+/// 
+/// </summary>
+/// <param name="groundY"></param>
+void Player::SetGroundY(float groundY)
+{
+    this->groundY = groundY;
+}
+
+/// <summary>
+/// ジャンプのインデックスを取得
+/// </summary>
+/// <returns></returns>
+bool Player::IsJumping() const
+{
+    return isJumping;
+}
+
 /// <summary>
 /// コンボのインデックスを取得
 /// </summary>

@@ -42,6 +42,7 @@ public:
     void ResolvePlayer(Player* player);
 public:
     void SetMaxEnemyAttackCount(int count);
+    void ResolveStageCollision(const StageManager& stageManager);
 
 private:
     void ResolveEnemyCollision();
@@ -49,5 +50,4 @@ private:
     bool ExistsEnemy(EnemyBase* enemy) const;
     bool IsAttackEnemy(EnemyBase* enemy) const;
     void CleanupAttackEnemies();
-    void ResolveStageCollision(const StageManager& stageManager);
 };

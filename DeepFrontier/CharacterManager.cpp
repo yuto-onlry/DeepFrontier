@@ -45,6 +45,16 @@ void CharacterManager::Update(const InputManager& inputManager, VECTOR cameraFor
     // Focusフェーズ更新
     FocusPhase();
 
+    if (player != nullptr)
+    {
+        VECTOR groundPos = stageManager.FitPositionToGround(
+            player->GetPosition(),
+            0.0f
+        );
+
+        player->SetGroundY(groundPos.y);
+    }
+
     // ロックオン情報をPlayerへ渡す
     if (player != nullptr)
     {
@@ -57,18 +67,12 @@ void CharacterManager::Update(const InputManager& inputManager, VECTOR cameraFor
         );
     }
 
-    if (player != nullptr)
-    {
-        VECTOR fixedPos = stageManager.ClampPosition(player->GetPosition(),-15.0f);
-        fixedPos = stageManager.FitPositionToGround(fixedPos, -15.0f);
-
-        player->SetPositionForCollision(fixedPos);
-    }
-
     VECTOR playerPos = GetPlayerPosition();
 
     // 敵全体の更新
     enemyManager.Update(playerPos);
+    // Enemyもステージ範囲内・固定床Yに合わせる
+    enemyManager.ResolveStageCollision(stageManager);
     // PlayerがEnemyにめり込まないようにする
     enemyManager.ResolvePlayer(player.get());
     // コライダー登録

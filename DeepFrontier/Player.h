@@ -35,6 +35,7 @@ public:
     PlayerState state;
     int animModelHandle;
     float verticalVelocity;
+    float groundY;
     bool isJumping;
 
 private:
@@ -73,6 +74,8 @@ public:
     int GetAttackColliderCount() const;
     SphereCollider* GetAttackCollider(int index);
     void SetPositionForCollision(VECTOR newPosition);
+    void SetGroundY(float groundY);
+    bool IsJumping() const;
 public:
     int GetComboIndex() const;
     void ClearHitEnemies();

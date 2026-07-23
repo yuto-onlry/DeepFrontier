@@ -14,7 +14,19 @@ private:
     VECTOR stageCenter;
     float stageRadius;
     float groundY;
+    
+//デバック用
+private:
+    mutable bool debugHasGroundRay;
+    mutable bool debugGroundRayHit;
 
+    mutable VECTOR debugGroundRayStart;
+    mutable VECTOR debugGroundRayEnd;
+    mutable VECTOR debugGroundHitPosition;
+    
+   
+    
+    //=======================================
 public:
     StageManager();
     ~StageManager();
@@ -34,4 +46,7 @@ public:
 
     // 地面の高さ
     float GetGroundY() const;
+
+    //デバック用
+    void DebugGroundRay(VECTOR targetPosition) const;
 };

@@ -36,7 +36,12 @@
         rotation(VGet(0.0f, 0.0f, 0.0f)),
         stageCenter(VGet(0.0f, 0.0f, 0.0f)),
         stageRadius(0.0f),
-        groundY(0.0f)
+        groundY(0.0f),
+        debugHasGroundRay(false),
+        debugGroundRayHit(false),
+        debugGroundRayStart(VGet(0.0f, 0.0f, 0.0f)),
+        debugGroundRayEnd(VGet(0.0f, 0.0f, 0.0f)),
+        debugGroundHitPosition(VGet(0.0f, 0.0f, 0.0f))
     {
     }
 
@@ -47,15 +52,15 @@
 
     bool StageManager::Init()
     {
-        stageModelHandle = MV1LoadModel("../3dModel/Stage/Stage.mv1");
+        stageModelHandle = MV1LoadModel("../3dModel/Stage/Stage2.mv1");
 
         if (stageModelHandle == -1)
         {
             return false;
         }
 
-        position = VGet(0.0f, -300.0f, 0.0f);
-        scale = VGet(5.0f, 5.0f, 5.0f);
+        position = VGet(0.0f, 0.0f, 0.0f);
+        scale = VGet(7.0f, 7.0f, 7.0f);
         rotation = VGet(0.0f, 0.0f, 0.0f);
 
         // ステージ判定用
@@ -63,13 +68,13 @@
         stageRadius =2200.0f;
         groundY = 0.0f;
 
-        // ステージの当たり判定情報を作成
-        MV1SetupCollInfo(stageModelHandle, -1, 8, 4, 8);
 
         MV1SetPosition(stageModelHandle, position);
         MV1SetScale(stageModelHandle, scale);
         MV1SetRotationXYZ(stageModelHandle, rotation);
 
+        // ステージの当たり判定情報を作成
+        MV1SetupCollInfo(stageModelHandle, -1, 16, 4, 16);
         return true;
     }
 
@@ -93,14 +98,42 @@
         }
 
         MV1DrawModel(stageModelHandle);
+        if (debugHasGroundRay == true)
+        {
+            // デバッグ線をモデルに隠されないようにする
+            SetUseZBuffer3D(FALSE);
+            SetWriteZBuffer3D(FALSE);
 
-        // デバッグ用：ステージ範囲
-        DrawCircleXZ(
-            VGet(stageCenter.x, groundY + 5.0f, stageCenter.z),
-            stageRadius,
-            64,
-            GetColor(255, 255, 0)
-        );
+            // レイ全体：水色
+            DrawLine3D(
+                debugGroundRayStart,
+                debugGroundRayEnd,
+                GetColor(0, 255, 255)
+            );
+
+            if (debugGroundRayHit == true)
+            {
+                // ヒット位置：赤い球
+                DrawSphere3D(
+                    debugGroundHitPosition,
+                    30.0f,
+                    16,
+                    GetColor(255, 0, 0),
+                    GetColor(255, 0, 0),
+                    TRUE
+                );
+
+                // 開始位置からヒット位置まで：赤線
+                DrawLine3D(
+                    debugGroundRayStart,
+                    debugGroundHitPosition,
+                    GetColor(255, 0, 0)
+                );
+            }
+
+            SetUseZBuffer3D(TRUE);
+            SetWriteZBuffer3D(TRUE);
+        }
     }
 
     void StageManager::Release()
@@ -121,13 +154,6 @@
     VECTOR StageManager::ClampPosition(VECTOR targetPosition, float radius) const
     {
         VECTOR result = targetPosition;
-
-        // 床より下に行かない
-        if (result.y < groundY)
-        {
-            result.y = groundY;
-        }
-
         float dx = result.x - stageCenter.x;
         float dz = result.z - stageCenter.z;
 
@@ -229,4 +255,40 @@
     float StageManager::GetGroundY() const
     {
         return groundY;
+    }
+    void StageManager::DebugGroundRay(VECTOR targetPosition) const
+    {
+        if (stageModelHandle == -1)
+        {
+            debugHasGroundRay = false;
+            return;
+        }
+
+        debugHasGroundRay = true;
+        debugGroundRayHit = false;
+
+        debugGroundRayStart = VGet(
+            targetPosition.x,
+            targetPosition.y + 500.0f,
+            targetPosition.z
+        );
+
+        debugGroundRayEnd = VGet(
+            targetPosition.x,
+            targetPosition.y - 300.0f,
+            targetPosition.z
+        );
+
+        MV1_COLL_RESULT_POLY hitResult = MV1CollCheck_Line(
+            stageModelHandle,
+            -1,
+            debugGroundRayStart,
+            debugGroundRayEnd
+        );
+
+        if (hitResult.HitFlag == TRUE)
+        {
+            debugGroundRayHit = true;
+            debugGroundHitPosition = hitResult.HitPosition;
+        }
     }
