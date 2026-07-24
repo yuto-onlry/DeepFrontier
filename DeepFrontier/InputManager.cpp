@@ -16,6 +16,7 @@ void InputManager::Init()
 
 	deadZone = 0.2f;
 	isConnected = false;
+   
 }
 
 void InputManager::Update()

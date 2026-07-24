@@ -66,7 +66,28 @@ void CharacterManager::Update(const InputManager& inputManager, VECTOR cameraFor
             lockOnManager.GetTargetPosition()
         );
     }
+    // Playerの位置補正
+    if (player != nullptr)
+    {
+        VECTOR fixedPos = stageManager.ClampPosition(
+            player->GetPosition(),
+            50.0f
+        );
 
+        // ジャンプ中は床に戻さない
+        if (player->IsJumping() == false)
+        {
+            fixedPos = stageManager.FitPositionToGround(
+                fixedPos,
+                0.0f
+            );
+        }
+
+        player->SetPositionForCollision(fixedPos);
+
+        // 補正後のPlayer位置からレイを可視化
+        stageManager.DebugGroundRay(player->GetPosition());
+    }
     VECTOR playerPos = GetPlayerPosition();
 
     // 敵全体の更新

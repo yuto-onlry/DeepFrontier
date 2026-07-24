@@ -1,10 +1,18 @@
 #pragma once
 #include "DxLib.h"
+#include <vector>
 
 class StageManager
 {
 private:
+    struct CircleWall
+    {
+        VECTOR center;
+        float radius;
+    };
+private:
     int stageModelHandle;
+    std::vector<CircleWall> circleWall;
 
     VECTOR position;
     VECTOR scale;
@@ -23,9 +31,6 @@ private:
     mutable VECTOR debugGroundRayStart;
     mutable VECTOR debugGroundRayEnd;
     mutable VECTOR debugGroundHitPosition;
-    
-   
-    
     //=======================================
 public:
     StageManager();
@@ -43,10 +48,11 @@ public:
 public:
     bool GetGroundYByRay(VECTOR targetPosition, float& outGroundY) const;
     VECTOR FitPositionToGround(VECTOR targetPosition, float footOffset) const;
-
+    VECTOR ResolveWallCollision(VECTOR targetPosition, float characterRadius) const;
     // 地面の高さ
     float GetGroundY() const;
 
     //デバック用
     void DebugGroundRay(VECTOR targetPosition) const;
+    void DrawWallDebug() const;
 };

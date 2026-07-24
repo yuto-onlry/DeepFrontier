@@ -67,6 +67,14 @@
         stageCenter = VGet(0.0f, 0.0f, 0.0f);
         stageRadius =2200.0f;
         groundY = 0.0f;
+        //壁の押し出し判定
+        circleWall.clear();
+        //中央の岩の押し出し判定
+        circleWall.push_back({ VGet(0.0f,0.0f,300.0f),180.0f });
+        //左側の岩の押し出し判定
+        circleWall.push_back({ VGet(-600.0f,0.0f,200.0f),180.0f });
+        //右側の岩の押出判定
+        circleWall.push_back({ VGet(600.0f,0.0f,-200.0f),180.0f });
 
 
         MV1SetPosition(stageModelHandle, position);
@@ -134,6 +142,7 @@
             SetUseZBuffer3D(TRUE);
             SetWriteZBuffer3D(TRUE);
         }
+        DrawWallDebug();
     }
 
     void StageManager::Release()
@@ -252,6 +261,36 @@
         return result;
     }
 
+    VECTOR StageManager::ResolveWallCollision(VECTOR targetPosition, float characterRadius) const
+    {
+        VECTOR result = targetPosition;
+
+        for (const CircleWall& wall : circleWall) {
+            float dx = result.x - wall.center.x;
+            float dz = result.z - wall.center.z;
+            float distanceSq = dx + dx * dz + dz;
+
+            float limitDistance = wall.radius + characterRadius;
+            float limitDistanceSq = limitDistance * limitDistance;
+
+            if (distanceSq < limitDistanceSq) {
+                float distance = sqrtf(distanceSq);
+                if (distance > 0.001f) {
+                    dx /= distance;
+                    dz /= distance;
+
+                    result.x = wall.center.x + dx * limitDistance;
+                    result.z = wall.center.z + dz * limitDistance;
+                }
+                else {
+                    result.x = wall.center.x + limitDistance;
+                    result.z = wall.center.z;
+                }
+            }
+        }
+        return result;
+    }
+
     float StageManager::GetGroundY() const
     {
         return groundY;
@@ -267,12 +306,14 @@
         debugHasGroundRay = true;
         debugGroundRayHit = false;
 
+        // プレイヤーの足元少し上から開始
         debugGroundRayStart = VGet(
             targetPosition.x,
-            targetPosition.y + 500.0f,
+            targetPosition.y + 10.0f,
             targetPosition.z
         );
 
+        // 足元から下方向だけを見る
         debugGroundRayEnd = VGet(
             targetPosition.x,
             targetPosition.y - 300.0f,
@@ -290,5 +331,18 @@
         {
             debugGroundRayHit = true;
             debugGroundHitPosition = hitResult.HitPosition;
+        }
+    }
+
+    void StageManager::DrawWallDebug() const
+    {
+        for (const CircleWall& wall : circleWall)
+        {
+            DrawCircleXZ(
+                VGet(wall.center.x, groundY + 20.0f, wall.center.z),
+                wall.radius,
+                32,
+                GetColor(255, 0, 255)
+            );
         }
     }
