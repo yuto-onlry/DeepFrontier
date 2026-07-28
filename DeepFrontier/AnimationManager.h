@@ -58,8 +58,7 @@ public:
 	// アニメーションを切り替える
     void ChangeAnim(AnimationType type);
     bool LoadAnimModel(const char* filePath);
-
-
+    
     // アニメーション番号を設定するセッター
     void SetAnimIndex(AnimationType type, int animIndex);
     void SetSpeed(float speed);

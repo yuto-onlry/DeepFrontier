@@ -268,7 +268,7 @@
         for (const CircleWall& wall : circleWall) {
             float dx = result.x - wall.center.x;
             float dz = result.z - wall.center.z;
-            float distanceSq = dx + dx * dz + dz;
+            float distanceSq = dx * dx + dz * dz;
 
             float limitDistance = wall.radius + characterRadius;
             float limitDistanceSq = limitDistance * limitDistance;

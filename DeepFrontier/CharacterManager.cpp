@@ -69,8 +69,17 @@ void CharacterManager::Update(const InputManager& inputManager, VECTOR cameraFor
     // Playerの位置補正
     if (player != nullptr)
     {
-        VECTOR fixedPos = stageManager.ClampPosition(
-            player->GetPosition(),
+        VECTOR fixedPos = player->GetPosition();
+
+        // 外周制限
+        fixedPos = stageManager.ClampPosition(
+            fixedPos,
+            50.0f
+        );
+
+        // 岩・壁の押し戻し判定
+        fixedPos = stageManager.ResolveWallCollision(
+            fixedPos,
             50.0f
         );
 

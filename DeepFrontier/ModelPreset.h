@@ -11,7 +11,7 @@ private:
 
 public:
     static int LoadPlayerModel();
-    static int LoadLittleEnemyModel();
+    static int LoadLittleEnemyModel();  
 
     static void Release();
 };

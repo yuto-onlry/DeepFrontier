@@ -11,6 +11,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     SetBackgroundColor(10, 10, 20);
     SetDrawScreen(DX_SCREEN_BACK);
+    
 
     SetUseZBuffer3D(TRUE);
     SetWriteZBuffer3D(TRUE);

@@ -211,7 +211,7 @@ void EnemyReaction::KnockbackDown(
         position = VAdd(position, knockBackVelocity);
 
         knockBackVelocity.x *= 0.94f;
-        knockBackVelocity.z *= 0.94f;
+        knockBackVelocity.z *=0.94f;
 
         knockBackVelocity.y -= gravity;
 

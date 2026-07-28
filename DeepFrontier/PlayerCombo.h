@@ -25,6 +25,8 @@ public:
     bool CanNext() const;
     int GetNextIndex() const;
 
+    /// 現在のコンボ状態・ロックオン状態に応じたアニメーション種別を返す
     AnimationType GetAnimationType(bool isLockOn) const;
+    // 現在のコンボ段階に対応する攻撃データを取得する
     PlayerAction::AttackData GetAttackData() const;
 };
