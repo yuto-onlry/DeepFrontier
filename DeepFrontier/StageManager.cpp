@@ -52,7 +52,7 @@
 
     bool StageManager::Init()
     {
-        stageModelHandle = MV1LoadModel("../3dModel/Stage/Stage2.mv1");
+        stageModelHandle = MV1LoadModel("../3dModel/Stage/Stage00.mv1");
 
         if (stageModelHandle == -1)
         {
@@ -69,12 +69,6 @@
         groundY = 0.0f;
         //壁の押し出し判定
         circleWall.clear();
-        //中央の岩の押し出し判定
-        circleWall.push_back({ VGet(0.0f,0.0f,300.0f),180.0f });
-        //左側の岩の押し出し判定
-        circleWall.push_back({ VGet(-600.0f,0.0f,200.0f),180.0f });
-        //右側の岩の押出判定
-        circleWall.push_back({ VGet(600.0f,0.0f,-200.0f),180.0f });
 
 
         MV1SetPosition(stageModelHandle, position);

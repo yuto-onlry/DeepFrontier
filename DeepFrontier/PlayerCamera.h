@@ -9,17 +9,17 @@ private:
     VECTOR position;
     VECTOR target;
 
-    float distance;       // プレイヤーから後ろへの距離
-    float height;         // カメラの高さ
-    float targetHeight;   // 注視点の高さ
-    float followSpeed;    // 追従速度
+    float distance;       //プレイヤーから後ろへの距離
+    float height;         //カメラの高さ
+    float targetHeight;   //注視点の高さ
+    float followSpeed;    //追従速度
 
-    float angleY;     // 横回転
-    float angleX;     // 縦回転
-	float rotateSpeed;  // 回転速度
+    float angleY;       //横回転
+    float angleX;       //縦回転
+	float rotateSpeed;  //回転速度
 
-	VECTOR smoothPlayerPosition;        // プレイヤーの位置を滑らかに追従させるための変数
-	bool isSmoothPlayerPositionInit;    // プレイヤーの位置を滑らかに追従させるための初期化フラグ
+	VECTOR smoothPlayerPosition;        //プレイヤーの位置を滑らかに追従させるための変数
+	bool isSmoothPlayerPositionInit;    //プレイヤーの位置を滑らかに追従させるための初期化フラグ
 
 public:
     PlayerCamera();
@@ -37,6 +37,6 @@ public:
     void Update(VECTOR playerPos,VECTOR rightStick,bool isLockOn,VECTOR lockOnTargetPos,const StageManager& stageManager); 
     void Apply();
 private:
-	// プレイヤーの位置を滑らかに追従させる
+	//プレイヤーの位置を滑らかに追従させる
     VECTOR SmoothPlayerPosition(VECTOR playerPos);
 };
